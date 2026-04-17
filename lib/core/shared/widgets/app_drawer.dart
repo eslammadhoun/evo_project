@@ -1,6 +1,6 @@
 import 'package:evo_project/core/constants/spacing.dart';
 import 'package:evo_project/core/extensions/extensions.dart';
-import 'package:evo_project/core/logger/app_logger.dart';
+import 'package:evo_project/core/router/route_names.dart';
 import 'package:evo_project/core/shared/widgets/info_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
@@ -43,21 +43,21 @@ class AppDrawer extends StatelessWidget {
               itemName: 'Categories',
               routeName: 'Categories',
             ),
-            const SizedBox(height: 34),
+
             _drawerItem(context: context, itemName: 'Sale', routeName: 'Sale'),
-            const SizedBox(height: 34),
+
             _drawerItem(
               context: context,
               itemName: 'New arrivals',
               routeName: 'New arrivals',
             ),
-            const SizedBox(height: 34),
+
             _drawerItem(
               context: context,
               itemName: 'Best sellers',
               routeName: 'Best sellers',
             ),
-            const SizedBox(height: 34),
+
             _drawerItem(
               context: context,
               itemName: 'Featured products',
@@ -120,10 +120,13 @@ class AppDrawer extends StatelessWidget {
     required String itemName,
     required String routeName,
   }) {
-    return Padding(
-      padding: Spacing.appPadding,
-      child: InkWell(
-        onTap: () => AppLogger.info('Going to $itemName'),
+    return InkWell(
+      onTap: () => context.pushNamed(
+        RouteNames.productsPage,
+        extra: {'page_title': itemName},
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(17),
         child: Text(
           '>  $itemName',
           style: context.textStyles.bodyMedium!.copyWith(

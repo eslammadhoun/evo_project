@@ -2,7 +2,7 @@ import 'package:evo_project/core/constants/spacing.dart';
 import 'package:evo_project/core/extensions/extensions.dart';
 import 'package:evo_project/core/helpers/validators.dart';
 import 'package:evo_project/core/router/route_names.dart';
-import 'package:evo_project/core/shared/widgets/fotter.dart';
+import 'package:evo_project/core/shared/widgets/header.dart';
 import 'package:evo_project/core/shared/widgets/global_button.dart';
 import 'package:evo_project/core/shared/widgets/global_text_field.dart';
 import 'package:flutter/material.dart';
@@ -29,7 +29,7 @@ class _ForgetPasswordState extends State<ForgetPassword> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              FotterWidget(
+              HeaderWidget(
                 firstWidget: FirstWidget.back,
                 midWidget: MidWidget.text,
                 lastWidget: LastWidget.nothing,

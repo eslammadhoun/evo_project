@@ -11,4 +11,6 @@ class RoutePaths {
   static const String cart = '/cart';
   static const String wishList = '/wish_list';
   static const String profile = '/profile';
+  static const String productsPage = '/products_page';
+  static const String productDetailsPage = '/product_details_page';
 }

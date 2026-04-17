@@ -1,7 +1,7 @@
 import 'package:evo_project/core/constants/spacing.dart';
 import 'package:evo_project/core/extensions/extensions.dart';
 import 'package:evo_project/core/shared/widgets/app_drawer.dart';
-import 'package:evo_project/core/shared/widgets/fotter.dart';
+import 'package:evo_project/core/shared/widgets/header.dart';
 import 'package:evo_project/core/shared/widgets/product_card.dart';
 import 'package:evo_project/core/theme/app_typography.dart';
 import 'package:flutter/material.dart';
@@ -21,7 +21,7 @@ class HomePage extends StatelessWidget {
           children: [
             Column(
               children: [
-                FotterWidget(
+                HeaderWidget(
                   firstWidget: FirstWidget.menu,
                   midWidget: MidWidget.nothing,
                   lastWidget: LastWidget.cart,
@@ -60,70 +60,70 @@ class HomePage extends StatelessWidget {
     return Container(
       width: double.infinity,
       color: Color(0xffECF3FA),
-      child: PageView(
-        onPageChanged: (i) => pageIndex.value = i,
-        children: List.generate(
-          3,
-          (index) => Stack(
-            children: [
-              _bannerWidget(context: context),
-              Positioned(
-                left: 20,
-                bottom: 20,
-                child: Column(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(vertical: 4),
-                      decoration: BoxDecoration(
-                        border: Border.symmetric(
-                          horizontal: BorderSide(
-                            color: context.colors.primary,
-                            width: 2,
-                          ),
-                        ),
-                      ),
-                      child: InkWell(
-                        onTap: () {},
-                        child: Text(
-                          'SHOP NOW',
-                          style: context.textStyles.bodyMedium!.copyWith(
-                            fontSize: 12,
-                            color: context.colors.primary,
-                            fontWeight: AppTypography.bold,
-                          ),
-                        ),
-                      ),
-                    ),
-
-                    const SizedBox(height: 50),
-
-                    ValueListenableBuilder(
-                      valueListenable: pageIndex,
-                      builder: (context, value, _) {
-                        return Row(
-                          children: List.generate(
-                            3,
-                            (dotIndex) => Container(
-                              margin: const EdgeInsets.only(right: 6),
-                              width: 10,
-                              height: 10,
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(10),
-                                color: dotIndex == value
-                                    ? context.colors.primary
-                                    : context.colors.tertiary,
-                              ),
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ],
-                ),
-              ),
-            ],
+      child: Stack(
+        children: [
+          PageView(
+            onPageChanged: (i) => pageIndex.value = i,
+            children: List.generate(
+              3,
+              (index) => _bannerWidget(context: context),
+            ),
           ),
-        ),
+          Positioned(
+            left: 20,
+            bottom: 20,
+            child: Column(
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  decoration: BoxDecoration(
+                    border: Border.symmetric(
+                      horizontal: BorderSide(
+                        color: context.colors.primary,
+                        width: 2,
+                      ),
+                    ),
+                  ),
+                  child: InkWell(
+                    onTap: () {},
+                    child: Text(
+                      'SHOP NOW',
+                      style: context.textStyles.bodyMedium!.copyWith(
+                        fontSize: 12,
+                        color: context.colors.primary,
+                        fontWeight: AppTypography.bold,
+                      ),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 50),
+
+                ValueListenableBuilder(
+                  valueListenable: pageIndex,
+                  builder: (context, value, _) {
+                    return Row(
+                      children: List.generate(
+                        3,
+                        (dotIndex) => Container(
+                          margin: const EdgeInsets.only(right: 6),
+                          width: 10,
+                          height: 10,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(10),
+                            color: dotIndex == value
+                                ? context.colors.primary
+                                : context.colors.tertiary,
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -210,7 +210,7 @@ class HomePage extends StatelessWidget {
                 3,
                 (index) => Padding(
                   padding: const EdgeInsets.only(right: 14),
-                  child: ProductCard(),
+                  child: ProductCard(cardHeight: 200),
                 ),
               ),
             ),

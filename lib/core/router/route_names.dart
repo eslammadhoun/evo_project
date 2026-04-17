@@ -11,4 +11,6 @@ class RouteNames {
   static const String wishListPage = 'wishListPage';
   static const String profilePage = 'profilePage';
   static const String home = 'home';
+  static const String productsPage = 'productsPage';
+  static const String productDetailsPage = 'productDetailsPage';
 }

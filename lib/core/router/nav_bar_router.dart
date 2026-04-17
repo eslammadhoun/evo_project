@@ -1,11 +1,11 @@
 import 'package:evo_project/core/router/route_paths.dart';
 import 'package:go_router/go_router.dart';
-import 'package:evo_project/features/home/presentation/pages/cart_page.dart';
-import 'package:evo_project/features/home/presentation/pages/home_page.dart';
+import 'package:evo_project/features/home/presentation/pages/navbar_pages/cart_page.dart';
+import 'package:evo_project/features/home/presentation/pages/navbar_pages/home_page.dart';
 import 'package:evo_project/features/home/presentation/pages/main_page.dart';
-import 'package:evo_project/features/home/presentation/pages/profile_page.dart';
-import 'package:evo_project/features/home/presentation/pages/search_page.dart';
-import 'package:evo_project/features/home/presentation/pages/wishlist_page.dart';
+import 'package:evo_project/features/home/presentation/pages/navbar_pages/profile_page.dart';
+import 'package:evo_project/features/home/presentation/pages/navbar_pages/search_page.dart';
+import 'package:evo_project/features/home/presentation/pages/navbar_pages/wishlist_page.dart';
 
 final RouteBase bottomNavbarRouter = StatefulShellRoute.indexedStack(
   builder: (context, state, navigationShell) {
