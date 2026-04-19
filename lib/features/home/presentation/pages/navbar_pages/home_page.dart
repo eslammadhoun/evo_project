@@ -1,6 +1,7 @@
 import 'package:evo_project/core/constants/spacing.dart';
 import 'package:evo_project/core/extensions/extensions.dart';
 import 'package:evo_project/core/shared/widgets/app_drawer.dart';
+import 'package:evo_project/core/shared/widgets/dots_indecator.dart';
 import 'package:evo_project/core/shared/widgets/header.dart';
 import 'package:evo_project/core/shared/widgets/product_card.dart';
 import 'package:evo_project/core/theme/app_typography.dart';
@@ -99,27 +100,7 @@ class HomePage extends StatelessWidget {
 
                 const SizedBox(height: 50),
 
-                ValueListenableBuilder(
-                  valueListenable: pageIndex,
-                  builder: (context, value, _) {
-                    return Row(
-                      children: List.generate(
-                        3,
-                        (dotIndex) => Container(
-                          margin: const EdgeInsets.only(right: 6),
-                          width: 10,
-                          height: 10,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(10),
-                            color: dotIndex == value
-                                ? context.colors.primary
-                                : context.colors.tertiary,
-                          ),
-                        ),
-                      ),
-                    );
-                  },
-                ),
+                DotsIndecator(valueListenable: pageIndex),
               ],
             ),
           ),

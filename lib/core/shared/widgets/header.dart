@@ -28,9 +28,14 @@ class HeaderWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        border: BoxBorder.fromLTRB(
-          bottom: BorderSide(width: 1, color: Color(0xffDBE9F5)),
-        ),
+        border:
+            (firstWidget == FirstWidget.back &&
+                midWidget == MidWidget.text &&
+                lastWidget == LastWidget.nothing)
+            ? null
+            : BoxBorder.fromLTRB(
+                bottom: BorderSide(width: 1, color: Color(0xffDBE9F5)),
+              ),
       ),
       width: context.screenSize.width,
       height: kToolbarHeight,
@@ -70,7 +75,10 @@ class HeaderWidget extends StatelessWidget {
                   ),
                 ),
               ),
-              MidWidget.text => Text(text!),
+              MidWidget.text => Text(
+                text!,
+                style: context.textStyles.bodyLarge,
+              ),
             },
             switch (lastWidget) {
               LastWidget.cart => Row(
@@ -101,7 +109,7 @@ class HeaderWidget extends StatelessWidget {
                   ),
                 ],
               ),
-              LastWidget.nothing => const SizedBox(width: 30),
+              LastWidget.nothing => const SizedBox(width: 40),
             },
           ],
         ),

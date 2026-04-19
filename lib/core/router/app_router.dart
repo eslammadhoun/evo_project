@@ -6,6 +6,7 @@ import 'package:evo_project/features/auth/presentation/pages/forget_password.dar
 import 'package:evo_project/features/auth/presentation/pages/new_password.dart';
 import 'package:evo_project/features/auth/presentation/pages/signin_page.dart';
 import 'package:evo_project/features/auth/presentation/pages/signup_page.dart';
+import 'package:evo_project/features/home/presentation/pages/product_description_page.dart';
 import 'package:evo_project/features/home/presentation/pages/product_details_page.dart';
 import 'package:evo_project/features/home/presentation/pages/products_page.dart';
 import 'package:evo_project/features/onboarding/presentation/pages/onboarding.dart';
@@ -91,6 +92,20 @@ class AppRouter {
         path: RoutePaths.productDetailsPage,
         name: RouteNames.productDetailsPage,
         builder: (context, state) => ProductDetailsPage(),
+      ),
+
+      // Product Descriotion page
+      GoRoute(
+        path: RoutePaths.productDescriptionPage,
+        name: RouteNames.productDescriptionPage,
+        builder: (context, state) {
+          final Map<String, dynamic> extraData =
+              state.extra as Map<String, dynamic>;
+          return ProductDescriptionPage(
+            productName: extraData['product_name'],
+            productDescription: extraData['product_description'],
+          );
+        },
       ),
     ],
   );

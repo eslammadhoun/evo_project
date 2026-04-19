@@ -13,4 +13,5 @@ class RoutePaths {
   static const String profile = '/profile';
   static const String productsPage = '/products_page';
   static const String productDetailsPage = '/product_details_page';
+  static const String productDescriptionPage = '/product_description_page';
 }
