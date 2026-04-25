@@ -1,18 +1,44 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:evo_project/core/constants/spacing.dart';
 import 'package:evo_project/core/extensions/extensions.dart';
 import 'package:evo_project/core/shared/widgets/app_drawer.dart';
 import 'package:evo_project/core/shared/widgets/dots_indecator.dart';
 import 'package:evo_project/core/shared/widgets/header.dart';
+import 'package:evo_project/core/shared/widgets/loading_indecator.dart';
 import 'package:evo_project/core/shared/widgets/product_card.dart';
 import 'package:evo_project/core/theme/app_typography.dart';
+import 'package:evo_project/features/home/presentation/bloc/home_bloc.dart';
+import 'package:evo_project/features/home/presentation/bloc/home_event.dart';
+import 'package:evo_project/features/home/presentation/bloc/states/banners_state.dart';
+import 'package:evo_project/features/home/presentation/bloc/states/home_state.dart';
+import 'package:evo_project/features/home/presentation/bloc/states/related_products_state.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 
-// ignore: must_be_immutable
-class HomePage extends StatelessWidget {
-  HomePage({super.key});
+class HomePage extends StatefulWidget {
+  const HomePage({super.key});
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
   ValueNotifier<int> pageIndex = ValueNotifier(0);
 
+  @override
+  void initState() {
+    super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      context.read<HomeBloc>().add(GetTopBannersEvent());
+      context.read<HomeBloc>().add(GetRelatedProductsEvent(productId: '99790'));
+    });
+  }
+
+  /*
+  
+*/
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -27,21 +53,64 @@ class HomePage extends StatelessWidget {
                   midWidget: MidWidget.nothing,
                   lastWidget: LastWidget.cart,
                 ),
-                Expanded(
-                  child: CustomScrollView(
-                    slivers: [
-                      ...List.generate(
-                        3,
-                        (index) => SliverFillRemaining(
-                          hasScrollBody: true,
-                          child: index == 0
-                              ? _heroSection(context: context)
-                              : _bannerWidget(context: context),
+                BlocConsumer<HomeBloc, HomeState>(
+                  listener: (context, state) {},
+                  builder: (context, state) {
+                    if (state.bannersState.getTopBannerProductsState ==
+                        GetTopBannerProductsState.initial) {
+                      return Center(
+                        child: AppLoadingIndicator(size: 60, strokeWidth: 8),
+                      );
+                    } else if (state.bannersState.getTopBannerProductsState ==
+                        GetTopBannerProductsState.loading) {
+                      return Center(
+                        child: AppLoadingIndicator(size: 60, strokeWidth: 8),
+                      );
+                    } else if (state.bannersState.getTopBannerProductsState ==
+                        GetTopBannerProductsState.failure) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            state
+                                .bannersState
+                                .getTopBannerProductsErrorMessage!,
+                          ),
                         ),
-                      ),
-                      SliverToBoxAdapter(child: _listSection(context)),
-                    ],
-                  ),
+                      );
+                      return SizedBox.shrink();
+                    } else {
+                      return Expanded(
+                        child: CustomScrollView(
+                          slivers: [
+                            ...List.generate(
+                              3,
+                              (index) => SliverFillRemaining(
+                                hasScrollBody: true,
+                                child: index == 0
+                                    ? _heroSection(
+                                        context: context,
+                                        imageUrl: state
+                                            .bannersState
+                                            .topBannerProducts![index]
+                                            .images![0]
+                                            .url!,
+                                      )
+                                    : _bannerWidget(
+                                        context: context,
+                                        imageUrl: state
+                                            .bannersState
+                                            .topBannerProducts![index]
+                                            .images![0]
+                                            .url!,
+                                      ),
+                              ),
+                            ),
+                            SliverToBoxAdapter(child: _listSection(context)),
+                          ],
+                        ),
+                      );
+                    }
+                  },
                 ),
               ],
             ),
@@ -57,7 +126,10 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  Widget _heroSection({required BuildContext context}) {
+  Widget _heroSection({
+    required BuildContext context,
+    required String imageUrl,
+  }) {
     return Container(
       width: double.infinity,
       color: Color(0xffECF3FA),
@@ -67,7 +139,7 @@ class HomePage extends StatelessWidget {
             onPageChanged: (i) => pageIndex.value = i,
             children: List.generate(
               3,
-              (index) => _bannerWidget(context: context),
+              (index) => _bannerWidget(context: context, imageUrl: imageUrl),
             ),
           ),
           Positioned(
@@ -100,7 +172,7 @@ class HomePage extends StatelessWidget {
 
                 const SizedBox(height: 50),
 
-                DotsIndecator(valueListenable: pageIndex),
+                DotsIndecator(valueListenable: pageIndex, dotsCount: 3),
               ],
             ),
           ),
@@ -109,7 +181,7 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  Widget _bannerWidget({required BuildContext context}) {
+  Widget _bannerWidget({required BuildContext context, required imageUrl}) {
     return Container(
       decoration: BoxDecoration(
         border: BoxBorder.fromLTRB(
@@ -119,10 +191,7 @@ class HomePage extends StatelessWidget {
       child: Stack(
         children: [
           Positioned.fill(
-            child: Image.asset(
-              'lib/assets/images/image.png',
-              fit: BoxFit.cover,
-            ),
+            child: CachedNetworkImage(imageUrl: imageUrl, fit: BoxFit.cover),
           ),
 
           Positioned(
@@ -151,54 +220,78 @@ class HomePage extends StatelessWidget {
 
   // Featured Products Section
   Widget _featuredProducts({required BuildContext context}) {
-    return Column(
-      children: [
-        Padding(
-          padding: Spacing.appPadding,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return BlocBuilder<HomeBloc, HomeState>(
+      builder: (BuildContext context, state) {
+        if (state.relatedProductsState.getRelatedProductsState ==
+            GetRelatedProductsStates.loading) {
+          return Center(child: AppLoadingIndicator(size: 60, strokeWidth: 8));
+        } else if (state.relatedProductsState.getRelatedProductsState ==
+            GetRelatedProductsStates.failure) {
+          return Center(
+            child: Text(
+              state.relatedProductsState.getRelatedProductsErrorMessage!,
+            ),
+          );
+        } else if (state.relatedProductsState.getRelatedProductsState ==
+            GetRelatedProductsStates.success) {
+          return Column(
             children: [
-              Text(
-                'Featured products',
-                style: context.textStyles.headlineMedium,
-              ),
-              GestureDetector(
-                onTap: () => print('Viewing All'),
+              Padding(
+                padding: Spacing.appPadding,
                 child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'view  all',
-                      style: context.textStyles.bodyMedium!.copyWith(
-                        color: context.colors.primary,
+                      'Featured products',
+                      style: context.textStyles.headlineMedium,
+                    ),
+                    GestureDetector(
+                      onTap: () => print('Viewing All'),
+                      child: Row(
+                        children: [
+                          Text(
+                            'view  all',
+                            style: context.textStyles.bodyMedium!.copyWith(
+                              color: context.colors.primary,
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          Icon(Icons.arrow_forward_ios),
+                        ],
                       ),
                     ),
-                    const SizedBox(width: 6),
-                    Icon(Icons.arrow_forward_ios),
                   ],
                 ),
               ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 14),
-        Padding(
-          padding: const EdgeInsets.only(left: 20),
-          child: SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            physics: const BouncingScrollPhysics(),
-            child: Row(
-              children: List.generate(
-                3,
-                (index) => Padding(
-                  padding: const EdgeInsets.only(right: 14),
-                  child: ProductCard(cardHeight: 200),
+              const SizedBox(height: 14),
+              Padding(
+                padding: const EdgeInsets.only(left: 20),
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  physics: const BouncingScrollPhysics(),
+                  child: Row(
+                    children: List.generate(
+                      state.relatedProductsState.relatedProducts!.length,
+                      (index) => Padding(
+                        padding: const EdgeInsets.only(right: 14),
+                        child: ProductCard(
+                          cardHeight: 200,
+                          product: state
+                              .relatedProductsState
+                              .relatedProducts![index],
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
               ),
-            ),
-          ),
-        ),
-        const SizedBox(height: 50),
-      ],
+              const SizedBox(height: 50),
+            ],
+          );
+        } else {
+          return Center(child: AppLoadingIndicator(size: 60, strokeWidth: 8));
+        }
+      },
     );
   }
 }

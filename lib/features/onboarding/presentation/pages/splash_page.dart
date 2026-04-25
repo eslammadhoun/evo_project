@@ -1,4 +1,7 @@
-import 'package:evo_project/core/router/route_names.dart';
+import 'package:evo_project/core/di/service_locator.dart';
+import 'package:evo_project/core/logger/app_logger.dart';
+import 'package:evo_project/core/router/route_paths.dart';
+import 'package:evo_project/core/services/app_preferences.dart';
 import 'package:evo_project/core/theme/app_typography.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
@@ -12,12 +15,31 @@ class SplashPage extends StatefulWidget {
 }
 
 class _SplashPageState extends State<SplashPage> {
+  final AppPreferences appPreferences = sl<AppPreferences>();
+
   @override
   void initState() {
     super.initState();
     Future.delayed(const Duration(seconds: 2), () {
+      final String userName = appPreferences.getUserName();
+      final String userEmail = appPreferences.getUserEmail();
+      final String? userToken = appPreferences.getToken();
+      final bool isAuthenticated = appPreferences.isAuthenticated();
+      final bool isOnboardingCompleted = appPreferences.isOnboardingCompleted();
+      AppLogger.debug(
+        isAuthenticated
+            ? '----------------------------User Is Authenticated----------------------------\n'
+                  'User Name: $userName\nUser Email: $userEmail\nUser Token $userToken'
+            : '----------------------------User Is Not Authenticated----------------------------',
+      );
       if (!mounted) return;
-      context.goNamed(RouteNames.onboarding);
+      context.go(
+        isAuthenticated
+            ? RoutePaths.home
+            : isOnboardingCompleted
+            ? RoutePaths.signin
+            : RoutePaths.onboarding,
+      );
     });
   }
 

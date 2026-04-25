@@ -35,14 +35,12 @@ class CustomNavBar extends StatelessWidget {
     required int index,
     required bool isSelected,
   }) {
-    final icons = ['home', 'search', 'cart2', 'heart', 'profile'];
+    final icons = ['home', 'search', 'cart', 'heart', 'profile'];
 
     return GestureDetector(
       onTap: () => onTap(index),
-      child: Container(
-        padding: const EdgeInsets.only(top: 4),
-        height: kBottomNavigationBarHeight,
-        width: (context.screenSize.width - 96) / 5,
+      child: SizedBox(
+        width: (context.screenSize.width - 90) / 5,
         child: AnimatedScale(
           scale: isSelected ? 1.15 : 1.0,
           duration: const Duration(milliseconds: 200),

@@ -1,3 +1,4 @@
+import 'package:evo_project/core/di/service_locator.dart';
 import 'package:evo_project/core/router/nav_bar_router.dart';
 import 'package:evo_project/core/router/route_names.dart';
 import 'package:evo_project/core/router/route_paths.dart';
@@ -6,16 +7,23 @@ import 'package:evo_project/features/auth/presentation/pages/forget_password.dar
 import 'package:evo_project/features/auth/presentation/pages/new_password.dart';
 import 'package:evo_project/features/auth/presentation/pages/signin_page.dart';
 import 'package:evo_project/features/auth/presentation/pages/signup_page.dart';
+import 'package:evo_project/features/home/Domain/usecases/get_category.dart';
+import 'package:evo_project/features/home/Domain/usecases/get_product.dart';
+import 'package:evo_project/features/home/Domain/usecases/get_related_products.dart';
+import 'package:evo_project/features/home/presentation/bloc/home_bloc.dart';
+import 'package:evo_project/features/home/presentation/bloc/home_event.dart';
+import 'package:evo_project/features/home/presentation/pages/filter_page.dart';
 import 'package:evo_project/features/home/presentation/pages/product_description_page.dart';
 import 'package:evo_project/features/home/presentation/pages/product_details_page.dart';
 import 'package:evo_project/features/home/presentation/pages/products_page.dart';
 import 'package:evo_project/features/onboarding/presentation/pages/onboarding.dart';
 import 'package:evo_project/features/onboarding/presentation/pages/splash_page.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 class AppRouter {
   static final GoRouter router = GoRouter(
-    initialLocation: RoutePaths.home,
+    initialLocation: RoutePaths.splash,
     routes: [
       // Splash Page
       GoRoute(
@@ -91,7 +99,20 @@ class AppRouter {
       GoRoute(
         path: RoutePaths.productDetailsPage,
         name: RouteNames.productDetailsPage,
-        builder: (context, state) => ProductDetailsPage(),
+        builder: (context, state) {
+          final String productId = state.extra as String;
+          return BlocProvider<HomeBloc>(
+            create: (_) =>
+                HomeBloc(
+                    getProductsUsecase: sl<GetCategoryUsecase>(),
+                    getProductUsecase: sl<GetProductUsecase>(),
+                    getRelatedProductsUsecase: sl<GetRelatedProducts>(),
+                  )
+                  ..add(GetProductEvent(productId: productId))
+                  ..add(GetRelatedProductsEvent(productId: productId)),
+            child: const ProductDetailsPage(),
+          );
+        },
       ),
 
       // Product Descriotion page
@@ -106,6 +127,13 @@ class AppRouter {
             productDescription: extraData['product_description'],
           );
         },
+      ),
+
+      // Filter Page
+      GoRoute(
+        path: RoutePaths.filterPage,
+        name: RouteNames.filterPage,
+        builder: (context, state) => FilterPage(),
       ),
     ],
   );

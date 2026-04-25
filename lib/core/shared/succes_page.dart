@@ -65,6 +65,7 @@ class SuccesPage extends StatelessWidget {
                     context.goNamed(RouteNames.home);
                   }
                 },
+                height: 50.h(context),
               ),
             ],
           ),

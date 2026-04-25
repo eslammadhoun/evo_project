@@ -14,4 +14,5 @@ class RouteNames {
   static const String productsPage = 'productsPage';
   static const String productDetailsPage = 'productDetailsPage';
   static const String productDescriptionPage = 'productDescriptionPage';
+  static const String filterPage = 'filterPage';
 }

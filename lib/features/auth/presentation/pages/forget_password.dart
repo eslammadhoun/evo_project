@@ -81,6 +81,7 @@ class _ForgetPasswordState extends State<ForgetPassword> {
             onTap: () => _formKey.currentState!.validate()
                 ? context.pushNamed(RouteNames.newPassword)
                 : null,
+            height: 50.h(context),
           ),
         ],
       ),

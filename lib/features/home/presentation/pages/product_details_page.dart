@@ -1,12 +1,20 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:evo_project/core/constants/spacing.dart';
 import 'package:evo_project/core/extensions/extensions.dart';
 import 'package:evo_project/core/router/route_names.dart';
 import 'package:evo_project/core/shared/widgets/dots_indecator.dart';
 import 'package:evo_project/core/shared/widgets/global_button.dart';
 import 'package:evo_project/core/shared/widgets/header.dart';
+import 'package:evo_project/core/shared/widgets/loading_indecator.dart';
 import 'package:evo_project/core/shared/widgets/product_card.dart';
 import 'package:evo_project/core/theme/app_typography.dart';
+import 'package:evo_project/features/home/Domain/entities/product.dart';
+import 'package:evo_project/features/home/presentation/bloc/home_bloc.dart';
+import 'package:evo_project/features/home/presentation/bloc/states/home_state.dart';
+import 'package:evo_project/features/home/presentation/bloc/states/product_details_state.dart';
+import 'package:evo_project/features/home/presentation/bloc/states/related_products_state.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:go_router/go_router.dart';
 
@@ -20,7 +28,6 @@ class ProductDetailsPage extends StatefulWidget {
 class _ProductDetailsPageState extends State<ProductDetailsPage>
     with SingleTickerProviderStateMixin {
   final ValueNotifier<int> productImageIndex = ValueNotifier(0);
-  final List<String> listOfSizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
   final ScrollController _scrollController = ScrollController();
 
   bool _isCollapsed = false;
@@ -55,49 +62,87 @@ class _ProductDetailsPageState extends State<ProductDetailsPage>
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-        child: Column(
-          children: [
-            HeaderWidget(
-              firstWidget: FirstWidget.back,
-              midWidget: MidWidget.nothing,
-              lastWidget: LastWidget.cart,
-            ),
-            Expanded(
-              child: NotificationListener<ScrollNotification>(
-                onNotification: (notification) {
-                  final offset = notification.metrics.pixels;
-                  final shouldCollapse = offset < _collapseThreshold;
-                  if (shouldCollapse != _isCollapsed) {
-                    setState(() => _isCollapsed = shouldCollapse);
-                  }
-                  return false;
-                },
-                child: ListView(
-                  controller: _scrollController,
-                  children: [
-                    _productImages(context: context),
-                    _collapsedDetailsBar(context: context),
-                    _productDetailsExpanded(context: context),
-                  ],
+        bottom: false,
+        child: BlocBuilder<HomeBloc, HomeState>(
+          builder: (BuildContext context, state) {
+            if (state.productDetailsState.getProductDetailsState ==
+                    GetProductDetails.loading ||
+                state.productDetailsState.getProductDetailsState ==
+                    GetProductDetails.initial) {
+              return Center(
+                child: AppLoadingIndicator(size: 60, strokeWidth: 8),
+              );
+            } else if (state.productDetailsState.getProductDetailsState ==
+                GetProductDetails.failure) {
+              return Center(
+                child: Text(
+                  state.productDetailsState.getProductDetailsErrorMessage!,
                 ),
-              ),
-            ),
-            const SizedBox(height: 20),
-            Padding(
-              padding: Spacing.appPadding,
-              child: GlobalButton(
-                text: '+ ADD TO CART',
-                onTap: () => print('object'),
-              ),
-            ),
-          ],
+              );
+            } else {
+              return Stack(
+                children: [
+                  Column(
+                    children: [
+                      HeaderWidget(
+                        firstWidget: FirstWidget.back,
+                        midWidget: MidWidget.nothing,
+                        lastWidget: LastWidget.cart,
+                      ),
+                      Expanded(
+                        child: NotificationListener<ScrollNotification>(
+                          onNotification: (notification) {
+                            final offset = notification.metrics.pixels;
+                            final shouldCollapse = offset < _collapseThreshold;
+                            if (shouldCollapse != _isCollapsed) {
+                              setState(() => _isCollapsed = shouldCollapse);
+                            }
+                            return false;
+                          },
+                          child: ListView(
+                            controller: _scrollController,
+                            children: [
+                              _productImages(
+                                context: context,
+                                product: state.productDetailsState.product!,
+                              ),
+                              _collapsedDetailsBar(context: context),
+                              _productDetailsExpanded(
+                                context: context,
+                                product: state.productDetailsState.product!,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  Positioned(
+                    left: 20,
+                    bottom: 20,
+                    child: SizedBox(
+                      width: context.screenSize.width - 40,
+                      child: GlobalButton(
+                        text: '+ ADD TO CART',
+                        onTap: () => print('object'),
+                        height: 50.h(context),
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            }
+          },
         ),
       ),
     );
   }
 
   // ─── Image Section ───────────────────────────────────────────────────────────
-  Widget _productImages({required BuildContext context}) {
+  Widget _productImages({
+    required BuildContext context,
+    required Product product,
+  }) {
     return Container(
       width: double.infinity,
       height: context.screenSize.height * 0.55,
@@ -113,9 +158,14 @@ class _ProductDetailsPageState extends State<ProductDetailsPage>
           PageView(
             onPageChanged: (i) => productImageIndex.value = i,
             children: List.generate(
-              3,
-              (index) =>
-                  Image.asset('lib/assets/images/image.png', fit: BoxFit.cover),
+              product.images!.length,
+              (index) => CachedNetworkImage(
+                imageUrl: product.images![index].url!,
+                progressIndicatorBuilder: (context, url, progress) => Center(
+                  child: AppLoadingIndicator(size: 60, strokeWidth: 8),
+                ),
+                fit: BoxFit.cover,
+              ),
             ),
           ),
 
@@ -133,7 +183,7 @@ class _ProductDetailsPageState extends State<ProductDetailsPage>
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: List.generate(
-                    listOfSizes.length,
+                    product.options!.first.variants!.length,
                     (index) => GestureDetector(
                       onTap: () => setState(() => _selectedSizeIndex = index),
                       child: AnimatedContainer(
@@ -141,7 +191,7 @@ class _ProductDetailsPageState extends State<ProductDetailsPage>
                         margin: const EdgeInsets.only(bottom: 10),
                         child: _sizeButton(
                           context: context,
-                          size: listOfSizes[index],
+                          size: product.options!.first.variants![index].label!,
                           index: index,
                         ),
                       ),
@@ -157,7 +207,10 @@ class _ProductDetailsPageState extends State<ProductDetailsPage>
             right: 0,
             left: 0,
             bottom: 31,
-            child: DotsIndecator(valueListenable: productImageIndex),
+            child: DotsIndecator(
+              valueListenable: productImageIndex,
+              dotsCount: product.images!.length,
+            ),
           ),
 
           // Heart button — always visible
@@ -240,7 +293,10 @@ class _ProductDetailsPageState extends State<ProductDetailsPage>
   }
 
   // ─── Expanded Details (normal scroll state) ──────────────────────────────────
-  Widget _productDetailsExpanded({required BuildContext context}) {
+  Widget _productDetailsExpanded({
+    required BuildContext context,
+    required Product product,
+  }) {
     return AnimatedCrossFade(
       duration: const Duration(milliseconds: 380),
       crossFadeState: _isCollapsed
@@ -255,7 +311,7 @@ class _ProductDetailsPageState extends State<ProductDetailsPage>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Name & Rating
-          _priceTabContent(context: context),
+          _priceTabContent(context: context, product: product),
           const SizedBox(height: 20),
 
           // Size label
@@ -270,10 +326,10 @@ class _ProductDetailsPageState extends State<ProductDetailsPage>
             padding: Spacing.appPadding,
             child: Row(
               children: List.generate(
-                listOfSizes.length,
+                product.options!.first.variants!.length,
                 (index) => _sizeButton(
                   context: context,
-                  size: listOfSizes[index],
+                  size: product.options!.first.variants![index].label!,
                   index: index,
                 ),
               ),
@@ -282,33 +338,50 @@ class _ProductDetailsPageState extends State<ProductDetailsPage>
           const SizedBox(height: 20),
 
           // Description
-          _descriptionTabContent(context: context),
+          _descriptionTabContent(
+            context: context,
+            productName: product.name!,
+            productDescription: product.options![0].variants![0].description!,
+          ),
           const SizedBox(height: 20),
           _mostRelatedProducts(context: context),
         ],
       ),
 
       // ── Second: collapsed tab content (scroll up)
-      secondChild: _buildCollapsedTabContent(context: context),
+      secondChild: _buildCollapsedTabContent(
+        context: context,
+        product: product,
+      ),
     );
   }
 
   // ─── Tab Content when collapsed ───────────────────────────────────────────────
-  Widget _buildCollapsedTabContent({required BuildContext context}) {
+  Widget _buildCollapsedTabContent({
+    required BuildContext context,
+    required Product product,
+  }) {
     return AnimatedSwitcher(
       duration: const Duration(milliseconds: 300),
       switchInCurve: Curves.easeInOutCubic,
       switchOutCurve: Curves.easeInOutCubic,
       child: _selectedTab == 0
-          ? _priceTabContent(context: context)
+          ? _priceTabContent(context: context, product: product)
           : _selectedTab == 1
-          ? _descriptionTabContent(context: context)
+          ? _descriptionTabContent(
+              context: context,
+              productName: product.name!,
+              productDescription: product.description!,
+            )
           : _reviewsTabContent(context: context),
     );
   }
 
   // PRICE tab
-  Widget _priceTabContent({required BuildContext context}) {
+  Widget _priceTabContent({
+    required BuildContext context,
+    required Product product,
+  }) {
     return Column(
       key: const ValueKey('price'),
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -319,15 +392,15 @@ class _ProductDetailsPageState extends State<ProductDetailsPage>
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'Spring Leather Coat',
-                style: context.textStyles.headlineMedium,
-              ),
+              Text(product.name!, style: context.textStyles.headlineMedium),
               Row(
                 children: [
                   SvgPicture.asset('lib/assets/icons/star.svg', width: 16),
                   const SizedBox(width: 5),
-                  Text('5,0', style: context.textStyles.bodyMedium),
+                  Text(
+                    product.reviews!.toDouble().toString(),
+                    style: context.textStyles.bodyMedium,
+                  ),
                 ],
               ),
             ],
@@ -355,18 +428,26 @@ class _ProductDetailsPageState extends State<ProductDetailsPage>
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Row(
-                  children: [
-                    Text(
-                      '\$399.8  ',
-                      style: context.textStyles.bodyMedium!.copyWith(
-                        color: Colors.grey,
-                        decoration: TextDecoration.lineThrough,
+                product.discountPercentage != 0.0
+                    ? Row(
+                        children: [
+                          Text(
+                            '\$${product.price! * product.discountPercentage!}   ',
+                            style: context.textStyles.bodyMedium!.copyWith(
+                              color: Colors.grey,
+                              decoration: TextDecoration.lineThrough,
+                            ),
+                          ),
+                          Text(
+                            '\$${product.price}',
+                            style: context.textStyles.headlineMedium,
+                          ),
+                        ],
+                      )
+                    : Text(
+                        '\$${product.price}',
+                        style: context.textStyles.headlineMedium,
                       ),
-                    ),
-                    Text('\$377.0', style: context.textStyles.headlineMedium),
-                  ],
-                ),
                 Row(
                   children: [
                     InkWell(
@@ -374,24 +455,29 @@ class _ProductDetailsPageState extends State<ProductDetailsPage>
                         () => _quantity = (_quantity - 1).clamp(1, 99),
                       ),
                       child: Padding(
-                        padding: const EdgeInsets.only(right: 20),
-                        child: Icon(
-                          Icons.remove_rounded,
-                          color: context.colors.primary,
+                        padding: const EdgeInsets.all(4.0),
+                        child: SvgPicture.asset(
+                          width: 14.w(context),
+                          'lib/assets/icons/minus.svg',
                         ),
                       ),
                     ),
-                    Text('$_quantity', style: context.textStyles.bodySmall),
+                    SizedBox(
+                      width: 40.w(context),
+                      child: Center(
+                        child: Text(
+                          '$_quantity',
+                          style: context.textStyles.bodySmall,
+                        ),
+                      ),
+                    ),
                     InkWell(
                       onTap: () => setState(
                         () => _quantity = (_quantity + 1).clamp(1, 99),
                       ),
                       child: Padding(
-                        padding: const EdgeInsets.only(left: 20),
-                        child: Icon(
-                          Icons.add_rounded,
-                          color: context.colors.primary,
-                        ),
+                        padding: const EdgeInsets.all(4.0),
+                        child: SvgPicture.asset('lib/assets/icons/plus.svg'),
                       ),
                     ),
                   ],
@@ -406,7 +492,11 @@ class _ProductDetailsPageState extends State<ProductDetailsPage>
   }
 
   // DESCRIPTION tab
-  Widget _descriptionTabContent({required BuildContext context}) {
+  Widget _descriptionTabContent({
+    required BuildContext context,
+    required String productName,
+    required String productDescription,
+  }) {
     return Padding(
       key: const ValueKey('description'),
       padding: Spacing.appPadding,
@@ -417,16 +507,16 @@ class _ProductDetailsPageState extends State<ProductDetailsPage>
           Text('Description', style: context.textStyles.headlineSmall),
           const SizedBox(height: 12),
           Text(
-            'Amet amet Lorem eu consectetur in deserunt nostrud dolor culpa ad sint amet. Nostrud deserunt consectetur culpa minim mollit veniam aliquip pariatur exercitation ullamco ea voluptate et. Pariatur ipsum mollit magna proident nisi ipsum.',
+            productDescription,
             style: context.textStyles.bodyMedium,
+            maxLines: 5,
           ),
           InkWell(
             onTap: () => context.pushNamed(
               RouteNames.productDescriptionPage,
               extra: {
-                'product_name': 'Spring Leather Coat',
-                'product_description':
-                    'Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. ',
+                'product_name': productName,
+                'product_description': productDescription,
               },
             ),
             child: Padding(
@@ -506,57 +596,81 @@ class _ProductDetailsPageState extends State<ProductDetailsPage>
 
   // Most Related Products Section
   Widget _mostRelatedProducts({required BuildContext context}) {
-    return Column(
-      children: [
-        Padding(
-          padding: Spacing.appPadding,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return BlocBuilder<HomeBloc, HomeState>(
+      builder: (BuildContext context, state) {
+        if (state.relatedProductsState.getRelatedProductsState ==
+            GetRelatedProductsStates.loading) {
+          return Center(child: AppLoadingIndicator(size: 60, strokeWidth: 8));
+        } else if (state.relatedProductsState.getRelatedProductsState ==
+            GetRelatedProductsStates.failure) {
+          return Center(
+            child: Text(
+              state.relatedProductsState.getRelatedProductsErrorMessage!,
+            ),
+          );
+        } else if (state.relatedProductsState.getRelatedProductsState ==
+            GetRelatedProductsStates.success) {
+          return Column(
             children: [
-              Text(
-                'Most Related Products',
-                style: context.textStyles.headlineMedium,
-              ),
-              GestureDetector(
-                onTap: () => context.pushNamed(
-                  RouteNames.productsPage,
-                  extra: {'page_title': 'Most Related'},
-                ),
+              Padding(
+                padding: Spacing.appPadding,
                 child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'view  all',
-                      style: context.textStyles.bodyMedium!.copyWith(
-                        color: context.colors.primary,
+                      'Most Related Products',
+                      style: context.textStyles.headlineMedium,
+                    ),
+                    GestureDetector(
+                      onTap: () => context.pushNamed(
+                        RouteNames.productsPage,
+                        extra: {'page_title': 'Most Related'},
+                      ),
+                      child: Row(
+                        children: [
+                          Text(
+                            'view  all',
+                            style: context.textStyles.bodyMedium!.copyWith(
+                              color: context.colors.primary,
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          Icon(Icons.arrow_forward_ios),
+                        ],
                       ),
                     ),
-                    const SizedBox(width: 6),
-                    Icon(Icons.arrow_forward_ios),
                   ],
                 ),
               ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 14),
-        Padding(
-          padding: const EdgeInsets.only(left: 20),
-          child: SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            physics: const BouncingScrollPhysics(),
-            child: Row(
-              children: List.generate(
-                3,
-                (index) => Padding(
-                  padding: const EdgeInsets.only(right: 14),
-                  child: ProductCard(cardHeight: 200),
+              const SizedBox(height: 14),
+              Padding(
+                padding: const EdgeInsets.only(left: 20),
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  physics: const BouncingScrollPhysics(),
+                  child: Row(
+                    children: List.generate(
+                      state.relatedProductsState.relatedProducts!.length,
+                      (index) => Padding(
+                        padding: const EdgeInsets.only(right: 14),
+                        child: ProductCard(
+                          cardHeight: 200,
+                          product: state
+                              .relatedProductsState
+                              .relatedProducts![index],
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
               ),
-            ),
-          ),
-        ),
-        const SizedBox(height: 50),
-      ],
+              const SizedBox(height: 50),
+            ],
+          );
+        } else {
+          return Center(child: AppLoadingIndicator(size: 60, strokeWidth: 8));
+        }
+      },
     );
   }
 }

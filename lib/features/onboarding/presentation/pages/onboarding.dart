@@ -1,7 +1,9 @@
 import 'package:evo_project/core/constants/on_boarding_const.dart';
 import 'package:evo_project/core/constants/spacing.dart';
+import 'package:evo_project/core/di/service_locator.dart';
 import 'package:evo_project/core/extensions/extensions.dart';
 import 'package:evo_project/core/router/route_names.dart';
+import 'package:evo_project/core/services/app_preferences.dart';
 import 'package:evo_project/core/shared/widgets/global_button.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -15,6 +17,7 @@ class Onboarding extends StatefulWidget {
 
 class _OnboardingState extends State<Onboarding> {
   int selectedIndex = 0;
+  final AppPreferences appPreferences = sl<AppPreferences>();
 
   @override
   Widget build(BuildContext context) {
@@ -66,8 +69,12 @@ class _OnboardingState extends State<Onboarding> {
                     ? setState(() {
                         selectedIndex++;
                       })
-                    : context.pushNamed(RouteNames.signin),
+                    : {
+                        context.pushNamed(RouteNames.signin),
+                        appPreferences.setOnboardingCompleted(true),
+                      },
                 text: selectedIndex != 2 ? 'NEXT' : 'GET STARTED',
+                height: 50.h(context),
               ),
             ),
           ],

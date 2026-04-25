@@ -114,6 +114,7 @@ class _NewPasswordPageState extends State<NewPasswordPage> {
                     },
                   )
                 : null,
+            height: 50.h(context),
           ),
         ],
       ),

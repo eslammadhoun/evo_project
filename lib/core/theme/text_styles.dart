@@ -17,6 +17,13 @@ class TextStyles {
     color: AppColors.mainColor,
   );
 
+  static TextStyle headingsH4 = TextStyle(
+    fontFamily: AppTypography.headingsFont,
+    fontWeight: AppTypography.medium,
+    fontSize: 18,
+    color: AppColors.mainColor,
+  );
+
   static TextStyle headingsH5 = TextStyle(
     fontFamily: AppTypography.headingsFont,
     fontWeight: AppTypography.semiBold,

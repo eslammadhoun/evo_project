@@ -4,7 +4,12 @@ import 'package:flutter/material.dart';
 
 class DotsIndecator extends StatelessWidget {
   final ValueListenable<int> valueListenable;
-  const DotsIndecator({super.key, required this.valueListenable});
+  final int dotsCount;
+  const DotsIndecator({
+    super.key,
+    required this.valueListenable,
+    required this.dotsCount,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -14,7 +19,7 @@ class DotsIndecator extends StatelessWidget {
         return Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: List.generate(
-            3,
+            dotsCount,
             (dotIndex) => Container(
               margin: const EdgeInsets.only(right: 6),
               width: 10,

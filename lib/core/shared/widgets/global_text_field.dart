@@ -15,6 +15,8 @@ class GlobalTextField extends StatelessWidget {
   final Widget? suffixIcon;
   final bool obscureText;
   final void Function(String)? onChanged;
+  final bool? isRequierdValidator;
+  final String? hintText;
 
   const GlobalTextField({
     super.key,
@@ -26,54 +28,64 @@ class GlobalTextField extends StatelessWidget {
     this.suffixIcon,
     this.obscureText = false,
     this.onChanged,
+    this.isRequierdValidator,
+    this.hintText,
   });
 
   @override
   Widget build(BuildContext context) {
-    return TextFormField(
-      controller: controller,
-      autovalidateMode: AutovalidateMode.onUserInteraction,
-      validator:
-          validator ??
-          ((val) => Validators.validateField(fieldType, controller.text)),
-      keyboardType: textInputType,
-      style: TextStyle(fontSize: 18, color: Colors.black87),
-      decoration: InputDecoration(
-        floatingLabelBehavior: FloatingLabelBehavior.always,
-        label: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10),
-          margin: const EdgeInsets.only(left: 10),
-          decoration: BoxDecoration(color: Colors.white),
-          child: Text(
-            text,
-            style: context.textStyles.bodyMedium!.copyWith(
-              fontWeight: AppTypography.medium,
-              color: context.colors.primary,
+    return SizedBox(
+      height: 50.h(context),
+      child: Center(
+        child: TextFormField(
+          controller: controller,
+          autovalidateMode: AutovalidateMode.onUserInteraction,
+          validator: isRequierdValidator == null
+              ? validator ??
+                    ((val) =>
+                        Validators.validateField(fieldType, controller.text))
+              : null,
+          keyboardType: textInputType,
+          style: TextStyle(fontSize: 18, color: Colors.black87),
+          decoration: InputDecoration(
+            floatingLabelBehavior: FloatingLabelBehavior.always,
+            label: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10),
+              margin: const EdgeInsets.only(left: 10),
+              decoration: BoxDecoration(color: Colors.white),
+              child: Text(
+                text,
+                style: context.textStyles.bodyMedium!.copyWith(
+                  fontWeight: AppTypography.medium,
+                  color: context.colors.primary,
+                ),
+              ),
             ),
+            hintText: hintText,
+            hintStyle: context.textStyles.bodyMedium,
+            enabledBorder: TopBottomInputBorder(
+              borderSide: BorderSide(color: Color(0xffDBE9F5)),
+            ),
+
+            focusedBorder: TopBottomInputBorder(
+              borderSide: BorderSide(color: context.colors.primary),
+            ),
+
+            errorBorder: TopBottomInputBorder(
+              borderSide: BorderSide(color: Colors.red),
+            ),
+
+            focusedErrorBorder: TopBottomInputBorder(
+              borderSide: BorderSide(color: Colors.red, width: 1.5),
+            ),
+
+            suffixIcon: suffixIcon,
+            contentPadding: EdgeInsets.only(top: -9, bottom: 16),
           ),
+          obscureText: obscureText,
+          onChanged: onChanged,
         ),
-
-        enabledBorder: TopBottomInputBorder(
-          borderSide: BorderSide(color: Color(0xffDBE9F5)),
-        ),
-
-        focusedBorder: TopBottomInputBorder(
-          borderSide: BorderSide(color: context.colors.primary),
-        ),
-
-        errorBorder: TopBottomInputBorder(
-          borderSide: BorderSide(color: Colors.red),
-        ),
-
-        focusedErrorBorder: TopBottomInputBorder(
-          borderSide: BorderSide(color: Colors.red, width: 1.5),
-        ),
-
-        suffixIcon: suffixIcon,
-        contentPadding: EdgeInsets.only(top: -9, bottom: 16),
       ),
-      obscureText: obscureText,
-      onChanged: onChanged,
     );
   }
 }

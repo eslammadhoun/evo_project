@@ -1,19 +1,27 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:evo_project/core/extensions/extensions.dart';
 import 'package:evo_project/core/logger/app_logger.dart';
 import 'package:evo_project/core/router/route_names.dart';
+import 'package:evo_project/core/shared/widgets/loading_indecator.dart';
+import 'package:evo_project/features/home/Domain/entities/product.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 
 class ProductCard extends StatelessWidget {
+  final Product? product;
   final double cardHeight;
 
-  const ProductCard({super.key, required this.cardHeight});
+  const ProductCard({super.key, required this.cardHeight, this.product});
 
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      onTap: () => context.pushNamed(RouteNames.productDetailsPage),
+      onTap: () {
+        context.pushNamed(
+          RouteNames.productDetailsPage,
+          extra: product!.productId,
+        );
+      },
       child: Container(
         width: context.screenSize.width * 0.36,
         decoration: BoxDecoration(borderRadius: BorderRadius.circular(5)),
@@ -31,10 +39,26 @@ class ProductCard extends StatelessWidget {
                 child: Stack(
                   children: [
                     Positioned.fill(
-                      child: Image.asset(
-                        'lib/assets/images/image.png',
-                        fit: BoxFit.cover,
-                      ),
+                      child: product != null
+                          ? CachedNetworkImage(
+                              imageUrl:
+                                  product!.image ?? product!.images![0].url!,
+                              progressIndicatorBuilder:
+                                  (context, url, downloadProgress) => Center(
+                                    child: AppLoadingIndicator(
+                                      size: 40,
+                                      strokeWidth: 4,
+                                    ),
+                                  ),
+                              errorWidget: (context, url, error) =>
+                                  Icon(Icons.error),
+                              fit: BoxFit.cover,
+                              memCacheWidth: 300,
+                            )
+                          : Image.asset(
+                              'lib/assets/images/image.png',
+                              fit: BoxFit.cover,
+                            ),
                     ),
                     Positioned(
                       top: 12,
@@ -51,8 +75,8 @@ class ProductCard extends StatelessWidget {
                             ),
                           ),
                           padding: const EdgeInsets.all(4),
-                          child: SvgPicture.asset(
-                            'lib/assets/icons/heart.svg',
+                          child: Icon(
+                            Icons.favorite_outline,
                             color: context.colors.secondary,
                           ),
                         ),
@@ -63,9 +87,16 @@ class ProductCard extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 14),
-            Text('Long summer dress', style: context.textStyles.bodySmall),
+            Text(
+              product != null ? product!.name! : 'Long summer dress',
+              style: context.textStyles.bodySmall,
+              maxLines: 1,
+            ),
             const SizedBox(height: 4),
-            Text('\$245.9', style: context.textStyles.labelMedium),
+            Text(
+              product != null ? '\$ ${product!.price}' : '\$245.9',
+              style: context.textStyles.labelMedium,
+            ),
           ],
         ),
       ),

@@ -75,9 +75,14 @@ class HeaderWidget extends StatelessWidget {
                   ),
                 ),
               ),
-              MidWidget.text => Text(
-                text!,
-                style: context.textStyles.bodyLarge,
+              MidWidget.text => Padding(
+                padding: EdgeInsets.only(left: 10),
+                child: Text(
+                  text!,
+                  style: context.textStyles.bodyMedium!.copyWith(
+                    color: context.colors.primary,
+                  ),
+                ),
               ),
             },
             switch (lastWidget) {
@@ -104,7 +109,7 @@ class HeaderWidget extends StatelessWidget {
                     onTap: () => context.go(RoutePaths.cart),
                     child: Padding(
                       padding: const EdgeInsets.all(12),
-                      child: SvgPicture.asset('lib/assets/icons/cart.svg'),
+                      child: SvgPicture.asset('lib/assets/icons/cart2.svg'),
                     ),
                   ),
                 ],

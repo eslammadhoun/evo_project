@@ -11,9 +11,8 @@ class MainPage extends StatelessWidget {
     return Scaffold(
       body: navigationShell,
       bottomNavigationBar: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 24),
+        padding: const EdgeInsets.fromLTRB(24, 4, 24, 0),
         decoration: BoxDecoration(
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(15)),
           gradient: LinearGradient(
             colors: [const Color(0xFF0F2A3C), const Color(0xFF000000)],
           ),
