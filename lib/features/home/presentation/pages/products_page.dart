@@ -14,8 +14,13 @@ import 'package:flutter_svg/svg.dart';
 import 'package:go_router/go_router.dart';
 
 class ProductsPage extends StatefulWidget {
-  final String pageTitle;
-  const ProductsPage({super.key, required this.pageTitle});
+  final String? pageTitle;
+  final String? categoryId;
+  const ProductsPage({
+    super.key,
+    required this.pageTitle,
+    required this.categoryId,
+  });
 
   @override
   State<ProductsPage> createState() => _ProductsPageState();
@@ -27,7 +32,10 @@ class _ProductsPageState extends State<ProductsPage> {
     super.initState();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<HomeBloc>().add(GetCatecoryProductsEvent(categoryId: '0'));
+      print('Category Id is : ${widget.categoryId}');
+      context.read<HomeBloc>().add(
+        GetCatecoryProductsEvent(categoryId: widget.categoryId ?? '0'),
+      );
     });
   }
 
@@ -42,7 +50,7 @@ class _ProductsPageState extends State<ProductsPage> {
               firstWidget: FirstWidget.back,
               midWidget: MidWidget.text,
               lastWidget: LastWidget.cart,
-              text: widget.pageTitle,
+              text: widget.pageTitle ?? 'Products',
             ),
             const SizedBox(height: 20),
             Expanded(

@@ -1,20 +1,23 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:evo_project/core/constants/spacing.dart';
 import 'package:evo_project/core/extensions/extensions.dart';
+import 'package:evo_project/core/helpers/media_type_helper.dart';
+import 'package:evo_project/core/router/route_names.dart';
 import 'package:evo_project/core/shared/widgets/app_drawer.dart';
 import 'package:evo_project/core/shared/widgets/dots_indecator.dart';
 import 'package:evo_project/core/shared/widgets/header.dart';
 import 'package:evo_project/core/shared/widgets/loading_indecator.dart';
 import 'package:evo_project/core/shared/widgets/product_card.dart';
 import 'package:evo_project/core/theme/app_typography.dart';
+import 'package:evo_project/features/home/Domain/entities/dashboard_entity.dart';
 import 'package:evo_project/features/home/presentation/bloc/home_bloc.dart';
 import 'package:evo_project/features/home/presentation/bloc/home_event.dart';
-import 'package:evo_project/features/home/presentation/bloc/states/banners_state.dart';
+import 'package:evo_project/features/home/presentation/bloc/states/dashboard_state.dart';
 import 'package:evo_project/features/home/presentation/bloc/states/home_state.dart';
 import 'package:evo_project/features/home/presentation/bloc/states/related_products_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:go_router/go_router.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -31,14 +34,15 @@ class _HomePageState extends State<HomePage> {
     super.initState();
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      context.read<HomeBloc>().add(GetTopBannersEvent());
-      context.read<HomeBloc>().add(GetRelatedProductsEvent(productId: '99790'));
+      context.read<HomeBloc>().add(GetDashboardEvent());
+      // context.read<HomeBloc>().add(GetRelatedProductsEvent(productId: '99790'));
     });
   }
 
   /*
   
-*/
+  */
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -54,55 +58,51 @@ class _HomePageState extends State<HomePage> {
                   lastWidget: LastWidget.cart,
                 ),
                 BlocConsumer<HomeBloc, HomeState>(
-                  listener: (context, state) {},
-                  builder: (context, state) {
-                    if (state.bannersState.getTopBannerProductsState ==
-                        GetTopBannerProductsState.initial) {
-                      return Center(
-                        child: AppLoadingIndicator(size: 60, strokeWidth: 8),
-                      );
-                    } else if (state.bannersState.getTopBannerProductsState ==
-                        GetTopBannerProductsState.loading) {
-                      return Center(
-                        child: AppLoadingIndicator(size: 60, strokeWidth: 8),
-                      );
-                    } else if (state.bannersState.getTopBannerProductsState ==
-                        GetTopBannerProductsState.failure) {
+                  listener: (context, state) {
+                    if (state.dashboardState.getDashboardState ==
+                        GetDashboardStates.failure) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: Text(
-                            state
-                                .bannersState
-                                .getTopBannerProductsErrorMessage!,
+                            state.dashboardState.getDashboardErrorMessage!,
                           ),
                         ),
                       );
+                    }
+                  },
+                  builder: (context, state) {
+                    if (state.dashboardState.getDashboardState ==
+                        GetDashboardStates.initial) {
+                      return Center(
+                        child: AppLoadingIndicator(size: 60, strokeWidth: 8),
+                      );
+                    } else if (state.dashboardState.getDashboardState ==
+                        GetDashboardStates.loading) {
+                      return Center(
+                        child: AppLoadingIndicator(size: 60, strokeWidth: 8),
+                      );
+                    } else if (state.dashboardState.getDashboardState ==
+                        GetDashboardStates.failure) {
                       return SizedBox.shrink();
                     } else {
                       return Expanded(
                         child: CustomScrollView(
                           slivers: [
+                            SliverFillRemaining(
+                              child: _topHeaderBanners(
+                                context: context,
+                                listOfBanners: state.dashboardState.topBanners!,
+                              ),
+                            ),
                             ...List.generate(
-                              3,
+                              state.dashboardState.footerBanners!.length,
                               (index) => SliverFillRemaining(
-                                hasScrollBody: true,
-                                child: index == 0
-                                    ? _heroSection(
-                                        context: context,
-                                        imageUrl: state
-                                            .bannersState
-                                            .topBannerProducts![index]
-                                            .images![0]
-                                            .url!,
-                                      )
-                                    : _bannerWidget(
-                                        context: context,
-                                        imageUrl: state
-                                            .bannersState
-                                            .topBannerProducts![index]
-                                            .images![0]
-                                            .url!,
-                                      ),
+                                child: _bannerWidget(
+                                  context: context,
+                                  banner: state
+                                      .dashboardState
+                                      .footerBanners![index],
+                                ),
                               ),
                             ),
                             SliverToBoxAdapter(child: _listSection(context)),
@@ -126,9 +126,9 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _heroSection({
+  Widget _topHeaderBanners({
     required BuildContext context,
-    required String imageUrl,
+    required List<BannerEntity> listOfBanners,
   }) {
     return Container(
       width: double.infinity,
@@ -138,8 +138,9 @@ class _HomePageState extends State<HomePage> {
           PageView(
             onPageChanged: (i) => pageIndex.value = i,
             children: List.generate(
-              3,
-              (index) => _bannerWidget(context: context, imageUrl: imageUrl),
+              listOfBanners.length,
+              (index) =>
+                  _bannerWidget(context: context, banner: listOfBanners[index]),
             ),
           ),
           Positioned(
@@ -147,6 +148,48 @@ class _HomePageState extends State<HomePage> {
             bottom: 20,
             child: Column(
               children: [
+                listOfBanners.length > 1
+                    ? DotsIndecator(
+                        valueListenable: pageIndex,
+                        dotsCount: listOfBanners.length,
+                      )
+                    : SizedBox(),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _bannerWidget({
+    required BuildContext context,
+    required BannerEntity banner,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        border: BoxBorder.fromLTRB(
+          top: BorderSide(color: Color(0xffDBE9F5), width: 4),
+        ),
+      ),
+      child: Stack(
+        children: [
+          (banner.type == 'tall_video' || banner.type == 'tall_banner')
+              ? Positioned.fill(child: mediaWidget(banner.images.first.image))
+              : SizedBox(),
+
+          Positioned(
+            bottom: 110,
+            left: 20,
+            right: 20,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  banner.description,
+                  style: context.textStyles.headlineLarge!,
+                ),
+                SizedBox(height: 30.h(context)),
                 Container(
                   padding: const EdgeInsets.symmetric(vertical: 4),
                   decoration: BoxDecoration(
@@ -158,7 +201,10 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ),
                   child: InkWell(
-                    onTap: () {},
+                    onTap: () => context.pushNamed(
+                      RouteNames.productsPage,
+                      extra: {'category_id': banner.categoryId},
+                    ),
                     child: Text(
                       'SHOP NOW',
                       style: context.textStyles.bodyMedium!.copyWith(
@@ -169,37 +215,7 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ),
                 ),
-
-                const SizedBox(height: 50),
-
-                DotsIndecator(valueListenable: pageIndex, dotsCount: 3),
               ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _bannerWidget({required BuildContext context, required imageUrl}) {
-    return Container(
-      decoration: BoxDecoration(
-        border: BoxBorder.fromLTRB(
-          top: BorderSide(color: Color(0xffDBE9F5), width: 4),
-        ),
-      ),
-      child: Stack(
-        children: [
-          Positioned.fill(
-            child: CachedNetworkImage(imageUrl: imageUrl, fit: BoxFit.cover),
-          ),
-
-          Positioned(
-            bottom: 140,
-            left: 20,
-            child: Text(
-              'Black Friday sale!\nSave up to 25%',
-              style: context.textStyles.headlineLarge,
             ),
           ),
         ],

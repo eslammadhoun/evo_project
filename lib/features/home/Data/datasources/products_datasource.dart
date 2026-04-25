@@ -7,6 +7,21 @@ class ProductsDatasource {
   final ApiConsumer apiClient;
   const ProductsDatasource({required this.apiClient});
 
+  Future<ResponseWrapper> getDashboard() async {
+    final ResponseWrapper getDashboardResponse = await apiClient.get(
+      ApiEndpoints.dashboard,
+    );
+    if (getDashboardResponse.statusModel.error >= 1) {
+      throw ServerFailure(
+        getDashboardResponse.statusModel.errorMessages
+            .map((error) => error)
+            .toString(),
+      );
+    }
+
+    return getDashboardResponse;
+  }
+
   Future<ResponseWrapper> getProducts({required String catecoryId}) async {
     final ResponseWrapper getProductsResponse = await apiClient.get(
       ApiEndpoints.products,

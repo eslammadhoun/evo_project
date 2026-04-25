@@ -1,12 +1,14 @@
 import 'package:dartz/dartz.dart';
 import 'package:evo_project/core/errors/failures.dart';
+import 'package:evo_project/features/home/Domain/entities/dashboard_entity.dart';
 import 'package:evo_project/features/home/Domain/entities/product.dart';
+import 'package:evo_project/features/home/Domain/usecases/get_dashboard.dart';
 import 'package:evo_project/features/home/Domain/usecases/get_product.dart';
 import 'package:evo_project/features/home/Domain/usecases/get_category.dart';
 import 'package:evo_project/features/home/Domain/usecases/get_related_products.dart';
 import 'package:evo_project/features/home/presentation/bloc/home_event.dart';
-import 'package:evo_project/features/home/presentation/bloc/states/banners_state.dart';
 import 'package:evo_project/features/home/presentation/bloc/states/category_products_state.dart';
+import 'package:evo_project/features/home/presentation/bloc/states/dashboard_state.dart';
 import 'package:evo_project/features/home/presentation/bloc/states/home_state.dart';
 import 'package:evo_project/features/home/presentation/bloc/states/product_details_state.dart';
 import 'package:evo_project/features/home/presentation/bloc/states/related_products_state.dart';
@@ -16,15 +18,17 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   final GetCategoryUsecase getProductsUsecase;
   final GetProductUsecase getProductUsecase;
   final GetRelatedProducts getRelatedProductsUsecase;
+  final GetDashboardUsecase getDashboardUsecase;
   HomeBloc({
     required this.getProductsUsecase,
     required this.getProductUsecase,
     required this.getRelatedProductsUsecase,
+    required this.getDashboardUsecase,
   }) : super(HomeState.inital()) {
     on<GetCatecoryProductsEvent>(_getCatecoryProducts);
     on<GetProductEvent>(_getProductDetails);
     on<GetRelatedProductsEvent>(_onGetRelatedProducts);
-    on<GetTopBannersEvent>(_onGetTopBannersProducts);
+    on<GetDashboardEvent>(_onGetDashboard);
   }
 
   Future<void> _getCatecoryProducts(
@@ -137,37 +141,34 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     );
   }
 
-  Future<void> _onGetTopBannersProducts(
-    GetTopBannersEvent event,
+  Future<void> _onGetDashboard(
+    GetDashboardEvent event,
     Emitter<HomeState> emit,
   ) async {
-    emit(
-      state.copyWith(
-        bannersState: BannersState(
-          getTopBannerProductsState: GetTopBannerProductsState.loading,
-        ),
-      ),
-    );
+    final Either<Failure, DashboardEntity> getDashboardResult =
+        await getDashboardUsecase();
 
-    final Either<Failure, List<Product>> getProductsResult =
-        await getProductsUsecase(catecoryId: '1');
-    getProductsResult.fold(
+    getDashboardResult.fold(
       (failure) => emit(
         state.copyWith(
-          bannersState: BannersState(
-            getTopBannerProductsState: GetTopBannerProductsState.failure,
-            getTopBannerProductsErrorMessage: failure.message,
+          dashboardState: DashboardState(
+            getDashboardState: GetDashboardStates.loading,
+            getDashboardErrorMessage: failure.message,
           ),
         ),
       ),
-      (success) => emit(
-        state.copyWith(
-          bannersState: BannersState(
-            getTopBannerProductsState: GetTopBannerProductsState.success,
-            topBannerProducts: success,
+      (success) {
+        emit(
+          state.copyWith(
+            dashboardState: DashboardState(
+              getDashboardState: GetDashboardStates.success,
+              dashboardEntity: success,
+              topBanners: success.banners['top_banner'],
+              footerBanners: success.banners['footer_banner'],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }

@@ -238,7 +238,9 @@ class ProfilePage extends StatelessWidget {
                 builder: (BuildContext context, state) {
                   return GlobalButton(
                     text: 'SURE',
-                    onTap: () => context.read<AuthBloc>().add(LogoutEvent()),
+                    onTap: () async {
+                      context.read<AuthBloc>().add(LogoutEvent());
+                    },
                     height: 50.h(context),
                     width: 120.w(context),
                     isFilled: false,

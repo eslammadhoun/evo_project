@@ -2,8 +2,6 @@ import 'package:evo_project/core/constants/providers.dart';
 import 'package:evo_project/core/di/service_locator.dart';
 import 'package:evo_project/core/env_config.dart';
 import 'package:evo_project/core/router/app_router.dart';
-import 'package:evo_project/core/router/route_paths.dart';
-import 'package:evo_project/core/services/auth_signals.dart';
 import 'package:evo_project/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -13,10 +11,6 @@ void main() async {
 
   await EnvConfig.init(fileName: ".env.prod");
   await initDI();
-  AuthSignals.unauthenticated.stream.listen((_) {
-    // redirect to login
-    AppRouter.router.go(RoutePaths.signin);
-  });
   runApp(const MyApp());
 }
 

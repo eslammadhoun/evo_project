@@ -10,16 +10,21 @@ import 'package:evo_project/features/auth/Domain/usecases/logout.dart';
 import 'package:evo_project/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:evo_project/features/home/Data/datasources/products_datasource.dart';
 import 'package:evo_project/features/home/Data/repositories/products_repository.dart';
+import 'package:evo_project/features/home/Domain/usecases/get_dashboard.dart';
 import 'package:evo_project/features/home/Domain/usecases/get_product.dart';
 import 'package:evo_project/features/home/Domain/usecases/get_category.dart';
 import 'package:evo_project/features/home/Domain/usecases/get_related_products.dart';
 import 'package:evo_project/features/home/presentation/bloc/home_bloc.dart';
+import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 final sl = GetIt.instance;
 
 Future<void> initDI() async {
+  sl.registerLazySingleton<GlobalKey<NavigatorState>>(
+    () => GlobalKey<NavigatorState>(),
+  );
   //! Core Dependency
   //! External
   final sharedPreferences = await SharedPreferences.getInstance();
@@ -33,7 +38,7 @@ Future<void> initDI() async {
   //* Network
   sl.registerLazySingleton<ApiClient>(() => ApiClient(dioClient: sl()));
   sl.registerLazySingleton<AppInterceptors>(
-    () => AppInterceptors(appPreferences: sl()),
+    () => AppInterceptors(appPreferences: sl(), dio: sl<Dio>()),
   );
   sl.registerLazySingleton<UserSeesion>(
     () => UserSeesion(
@@ -94,6 +99,9 @@ Future<void> initDI() async {
   sl.registerLazySingleton<GetRelatedProducts>(
     () => GetRelatedProducts(productsRepository: sl<ProductsRepository>()),
   );
+  sl.registerLazySingleton<GetDashboardUsecase>(
+    () => GetDashboardUsecase(productsRepository: sl<ProductsRepository>()),
+  );
 
   //* Blocs
   sl.registerFactory<HomeBloc>(
@@ -101,6 +109,7 @@ Future<void> initDI() async {
       getProductsUsecase: sl<GetCategoryUsecase>(),
       getProductUsecase: sl<GetProductUsecase>(),
       getRelatedProductsUsecase: sl<GetRelatedProducts>(),
+      getDashboardUsecase: sl<GetDashboardUsecase>(),
     ),
   );
 }

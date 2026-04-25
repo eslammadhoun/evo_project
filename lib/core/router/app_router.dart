@@ -8,6 +8,7 @@ import 'package:evo_project/features/auth/presentation/pages/new_password.dart';
 import 'package:evo_project/features/auth/presentation/pages/signin_page.dart';
 import 'package:evo_project/features/auth/presentation/pages/signup_page.dart';
 import 'package:evo_project/features/home/Domain/usecases/get_category.dart';
+import 'package:evo_project/features/home/Domain/usecases/get_dashboard.dart';
 import 'package:evo_project/features/home/Domain/usecases/get_product.dart';
 import 'package:evo_project/features/home/Domain/usecases/get_related_products.dart';
 import 'package:evo_project/features/home/presentation/bloc/home_bloc.dart';
@@ -18,11 +19,13 @@ import 'package:evo_project/features/home/presentation/pages/product_details_pag
 import 'package:evo_project/features/home/presentation/pages/products_page.dart';
 import 'package:evo_project/features/onboarding/presentation/pages/onboarding.dart';
 import 'package:evo_project/features/onboarding/presentation/pages/splash_page.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 class AppRouter {
   static final GoRouter router = GoRouter(
+    navigatorKey: sl<GlobalKey<NavigatorState>>(),
     initialLocation: RoutePaths.splash,
     routes: [
       // Splash Page
@@ -91,7 +94,10 @@ class AppRouter {
         name: RouteNames.productsPage,
         builder: (context, state) {
           final Map<String, dynamic> data = state.extra as Map<String, dynamic>;
-          return ProductsPage(pageTitle: data['page_title']);
+          return ProductsPage(
+            pageTitle: data['page_title'],
+            categoryId: data['category_id'],
+          );
         },
       ),
 
@@ -107,6 +113,7 @@ class AppRouter {
                     getProductsUsecase: sl<GetCategoryUsecase>(),
                     getProductUsecase: sl<GetProductUsecase>(),
                     getRelatedProductsUsecase: sl<GetRelatedProducts>(),
+                    getDashboardUsecase: sl<GetDashboardUsecase>(),
                   )
                   ..add(GetProductEvent(productId: productId))
                   ..add(GetRelatedProductsEvent(productId: productId)),

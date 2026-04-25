@@ -16,4 +16,7 @@ class ApiEndpoints {
 
   static const String productDetails =
       '/ktpl/getProduct?___store=en&currency_code=SAR&version_number=167';
+  static const String dashboard =
+      '/ktpl/home/dashboard?___store=en&currency_code=SAR&version_number=167';
+  static const String refreshToken = '/ktpl/account/refreshToken';
 }

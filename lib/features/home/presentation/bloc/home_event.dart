@@ -19,4 +19,4 @@ class GetRelatedProductsEvent extends HomeEvent {
   const GetRelatedProductsEvent({required this.productId});
 }
 
-class GetTopBannersEvent extends HomeEvent {}
+class GetDashboardEvent extends HomeEvent {}
