@@ -53,7 +53,6 @@ class ProductCard extends StatelessWidget {
                               errorWidget: (context, url, error) =>
                                   Icon(Icons.error),
                               fit: BoxFit.cover,
-                              memCacheWidth: 300,
                             )
                           : Image.asset(
                               'lib/assets/images/image.png',

@@ -22,10 +22,13 @@ class ProductsDatasource {
     return getDashboardResponse;
   }
 
-  Future<ResponseWrapper> getProducts({required String catecoryId}) async {
+  Future<ResponseWrapper> getProducts({
+    required String catecoryId,
+    required int page,
+  }) async {
     final ResponseWrapper getProductsResponse = await apiClient.get(
       ApiEndpoints.products,
-      queryParameters: {'category_id': catecoryId},
+      queryParameters: {'category_id': catecoryId, 'page': page},
     );
 
     if (getProductsResponse.statusModel.error >= 1) {

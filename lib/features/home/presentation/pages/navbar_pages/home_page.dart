@@ -35,13 +35,15 @@ class _HomePageState extends State<HomePage> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       context.read<HomeBloc>().add(GetDashboardEvent());
-      // context.read<HomeBloc>().add(GetRelatedProductsEvent(productId: '99790'));
+      context.read<HomeBloc>().add(GetRelatedProductsEvent(productId: '99790'));
     });
   }
 
-  /*
-  
-  */
+  @override
+  void dispose() {
+    pageIndex.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -70,6 +72,8 @@ class _HomePageState extends State<HomePage> {
                       );
                     }
                   },
+                  buildWhen: (prev, curr) =>
+                      prev.dashboardState != curr.dashboardState,
                   builder: (context, state) {
                     if (state.dashboardState.getDashboardState ==
                         GetDashboardStates.initial) {
@@ -105,7 +109,9 @@ class _HomePageState extends State<HomePage> {
                                 ),
                               ),
                             ),
-                            SliverToBoxAdapter(child: _listSection(context)),
+                            SliverToBoxAdapter(
+                              child: _featuredProducts(context: context),
+                            ),
                           ],
                         ),
                       );
@@ -135,13 +141,15 @@ class _HomePageState extends State<HomePage> {
       color: Color(0xffECF3FA),
       child: Stack(
         children: [
-          PageView(
+          PageView.builder(
+            itemCount: listOfBanners.length,
             onPageChanged: (i) => pageIndex.value = i,
-            children: List.generate(
-              listOfBanners.length,
-              (index) =>
-                  _bannerWidget(context: context, banner: listOfBanners[index]),
-            ),
+            itemBuilder: (context, index) {
+              return _bannerWidget(
+                context: context,
+                banner: listOfBanners[index],
+              );
+            },
           ),
           Positioned(
             left: 20,
@@ -203,7 +211,10 @@ class _HomePageState extends State<HomePage> {
                   child: InkWell(
                     onTap: () => context.pushNamed(
                       RouteNames.productsPage,
-                      extra: {'category_id': banner.categoryId},
+                      extra: {
+                        'category_id': banner.categoryId,
+                        'title': banner.categoryId,
+                      },
                     ),
                     child: Text(
                       'SHOP NOW',
@@ -223,20 +234,11 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _listSection(BuildContext context) {
-    return ListView(
-      shrinkWrap: true,
-      physics: NeverScrollableScrollPhysics(),
-      children: [
-        const SizedBox(height: 50),
-        _featuredProducts(context: context),
-      ],
-    );
-  }
-
   // Featured Products Section
   Widget _featuredProducts({required BuildContext context}) {
     return BlocBuilder<HomeBloc, HomeState>(
+      buildWhen: (previous, current) =>
+          previous.relatedProductsState != current.relatedProductsState,
       builder: (BuildContext context, state) {
         if (state.relatedProductsState.getRelatedProductsState ==
             GetRelatedProductsStates.loading) {
@@ -290,11 +292,13 @@ class _HomePageState extends State<HomePage> {
                       state.relatedProductsState.relatedProducts!.length,
                       (index) => Padding(
                         padding: const EdgeInsets.only(right: 14),
-                        child: ProductCard(
-                          cardHeight: 200,
-                          product: state
-                              .relatedProductsState
-                              .relatedProducts![index],
+                        child: RepaintBoundary(
+                          child: ProductCard(
+                            cardHeight: 200,
+                            product: state
+                                .relatedProductsState
+                                .relatedProducts![index],
+                          ),
                         ),
                       ),
                     ),

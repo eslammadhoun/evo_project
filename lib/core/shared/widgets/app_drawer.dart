@@ -123,7 +123,7 @@ class AppDrawer extends StatelessWidget {
     return InkWell(
       onTap: () => context.pushNamed(
         RouteNames.productsPage,
-        extra: {'page_title': itemName},
+        extra: {'page_title': itemName, 'category_id': '1'},
       ),
       child: Padding(
         padding: const EdgeInsets.all(17),

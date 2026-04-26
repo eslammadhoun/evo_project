@@ -7,6 +7,7 @@ import 'package:evo_project/features/home/Data/mappers/product_mapper.dart';
 import 'package:evo_project/features/home/Data/models/dashboard_model.dart';
 import 'package:evo_project/features/home/Data/models/product_model.dart';
 import 'package:evo_project/features/home/Domain/entities/dashboard_entity.dart';
+import 'package:evo_project/features/home/Domain/entities/paginated_products.dart';
 import 'package:evo_project/features/home/Domain/entities/product.dart';
 
 class ProductsRepository {
@@ -29,19 +30,21 @@ class ProductsRepository {
     }
   }
 
-  Future<Either<Failure, List<Product>>> getCategoryProducts({
+  Future<Either<Failure, PaginatedProducts>> getCategoryProducts({
     required String catecoryId,
+    required int page,
   }) async {
     try {
       final ResponseWrapper getProductsResponse = await productsDatasource
-          .getProducts(catecoryId: catecoryId);
-      final List<dynamic> jsonResponse =
-          getProductsResponse.data[0]['products'];
+          .getProducts(catecoryId: catecoryId, page: page);
+      final data = getProductsResponse.data[0];
 
-      final List<Product> listOfProducts = jsonResponse
+      final List<Product> listOfProducts = (data['products'] as List)
           .map((jsonProduct) => ProductModel.fromJson(jsonProduct).toEntity())
           .toList();
-      return Right(listOfProducts);
+      return Right(
+        PaginatedProducts(products: listOfProducts, hasMore: data['has_more']),
+      );
     } catch (e) {
       if (e is Failure) {
         return Left(ServerFailure(e.message));

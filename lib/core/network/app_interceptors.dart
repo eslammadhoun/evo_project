@@ -60,6 +60,7 @@ class AppInterceptors extends Interceptor {
       if (!isLogoutRequest && !_isRefreshing) {
         _isRefreshing = true;
         final refreshSuccess = await _tryRefreshToken();
+        debugPrint('refresh token result: $refreshSuccess');
         _isRefreshing = false;
 
         if (refreshSuccess) {

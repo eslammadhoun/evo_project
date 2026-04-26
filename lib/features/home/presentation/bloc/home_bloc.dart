@@ -1,6 +1,6 @@
-import 'package:dartz/dartz.dart';
-import 'package:evo_project/core/errors/failures.dart';
+import 'package:evo_project/core/helpers/bloc_request_handler.dart';
 import 'package:evo_project/features/home/Domain/entities/dashboard_entity.dart';
+import 'package:evo_project/features/home/Domain/entities/paginated_products.dart';
 import 'package:evo_project/features/home/Domain/entities/product.dart';
 import 'package:evo_project/features/home/Domain/usecases/get_dashboard.dart';
 import 'package:evo_project/features/home/Domain/usecases/get_product.dart';
@@ -29,36 +29,38 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     on<GetProductEvent>(_getProductDetails);
     on<GetRelatedProductsEvent>(_onGetRelatedProducts);
     on<GetDashboardEvent>(_onGetDashboard);
+    on<LoadMoreCategoryProductsEvent>(_onLoadmoreCategoryProducts);
   }
 
   Future<void> _getCatecoryProducts(
     GetCatecoryProductsEvent event,
     Emitter<HomeState> emit,
   ) async {
-    emit(
-      state.copyWith(
-        categoryProductsState: CategoryProductsState(
-          getCategoryState: GetCategoryStates.loading,
-        ),
-      ),
-    );
-
-    final Either<Failure, List<Product>> getProductsResult =
-        await getProductsUsecase(catecoryId: event.categoryId);
-    getProductsResult.fold(
-      (failure) => emit(
+    await blocRequestHandeler<PaginatedProducts>(
+      request: () => getProductsUsecase(catecoryId: event.categoryId, page: 1),
+      onLoading: () => emit(
         state.copyWith(
           categoryProductsState: CategoryProductsState(
-            getCategoryState: GetCategoryStates.failure,
-            getCategoryErrorMessage: failure.message,
+            getCategoryState: GetCategoryStates.loading,
+            page: 1,
           ),
         ),
       ),
-      (success) => emit(
+      onSuccess: (data) => emit(
         state.copyWith(
           categoryProductsState: CategoryProductsState(
             getCategoryState: GetCategoryStates.success,
-            categoryProducts: success,
+            categoryProducts: data.products,
+            hasMore: data.hasMore,
+            page: 1,
+          ),
+        ),
+      ),
+      onError: (message) => emit(
+        state.copyWith(
+          categoryProductsState: CategoryProductsState(
+            getCategoryState: GetCategoryStates.failure,
+            getCategoryErrorMessage: message,
           ),
         ),
       ),
@@ -69,33 +71,31 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     GetProductEvent event,
     Emitter<HomeState> emit,
   ) async {
-    emit(
-      state.copyWith(
-        productDetailsState: ProductDetailsState(
-          getProductDetailsState: GetProductDetails.loading,
-        ),
-      ),
-    );
-
-    final getProductResult = await getProductUsecase(
-      productId: event.productId,
-    );
-
-    getProductResult.fold(
-      (failure) => emit(
+    await blocRequestHandeler<Product>(
+      request: () => getProductUsecase(productId: event.productId),
+      onLoading: () => emit(
         state.copyWith(
           productDetailsState: ProductDetailsState(
-            getProductDetailsState: GetProductDetails.failure,
-            getProductDetailsErrorMessage: failure.message,
+            getProductDetailsState: GetProductDetails.loading,
           ),
         ),
       ),
-      (success) {
+      onSuccess: (product) {
         emit(
           state.copyWith(
             productDetailsState: ProductDetailsState(
               getProductDetailsState: GetProductDetails.success,
-              product: success,
+              product: product,
+            ),
+          ),
+        );
+      },
+      onError: (messsage) {
+        emit(
+          state.copyWith(
+            productDetailsState: ProductDetailsState(
+              getProductDetailsState: GetProductDetails.failure,
+              getProductDetailsErrorMessage: messsage,
             ),
           ),
         );
@@ -107,37 +107,31 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     GetRelatedProductsEvent event,
     Emitter<HomeState> emit,
   ) async {
-    emit(
-      state.copyWith(
-        relatedProductsState: RelatedProductsState(
-          getRelatedProductsState: GetRelatedProductsStates.loading,
-        ),
-      ),
-    );
-
-    final getProductResult = await getRelatedProductsUsecase(
-      productId: event.productId,
-    );
-
-    getProductResult.fold(
-      (failure) => emit(
+    await blocRequestHandeler<List<Product>>(
+      request: () => getRelatedProductsUsecase(productId: event.productId),
+      onLoading: () => emit(
         state.copyWith(
           relatedProductsState: RelatedProductsState(
-            getRelatedProductsState: GetRelatedProductsStates.failure,
-            getRelatedProductsErrorMessage: failure.message,
+            getRelatedProductsState: GetRelatedProductsStates.loading,
           ),
         ),
       ),
-      (success) {
-        emit(
-          state.copyWith(
-            relatedProductsState: RelatedProductsState(
-              getRelatedProductsState: GetRelatedProductsStates.success,
-              relatedProducts: success,
-            ),
+      onSuccess: (listOfProducts) => emit(
+        state.copyWith(
+          relatedProductsState: RelatedProductsState(
+            getRelatedProductsState: GetRelatedProductsStates.success,
+            relatedProducts: listOfProducts,
           ),
-        );
-      },
+        ),
+      ),
+      onError: (errorMessage) => emit(
+        state.copyWith(
+          relatedProductsState: RelatedProductsState(
+            getRelatedProductsState: GetRelatedProductsStates.success,
+            getRelatedProductsErrorMessage: errorMessage,
+          ),
+        ),
+      ),
     );
   }
 
@@ -145,30 +139,69 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     GetDashboardEvent event,
     Emitter<HomeState> emit,
   ) async {
-    final Either<Failure, DashboardEntity> getDashboardResult =
-        await getDashboardUsecase();
-
-    getDashboardResult.fold(
-      (failure) => emit(
+    await blocRequestHandeler<DashboardEntity>(
+      request: () => getDashboardUsecase(),
+      onLoading: () => emit(
         state.copyWith(
           dashboardState: DashboardState(
             getDashboardState: GetDashboardStates.loading,
-            getDashboardErrorMessage: failure.message,
           ),
         ),
       ),
-      (success) {
-        emit(
-          state.copyWith(
-            dashboardState: DashboardState(
-              getDashboardState: GetDashboardStates.success,
-              dashboardEntity: success,
-              topBanners: success.banners['top_banner'],
-              footerBanners: success.banners['footer_banner'],
-            ),
+      onSuccess: (dashboardEntity) => emit(
+        state.copyWith(
+          dashboardState: DashboardState(
+            getDashboardState: GetDashboardStates.success,
+            dashboardEntity: dashboardEntity,
+            topBanners: dashboardEntity.banners['top_banner'] ?? [],
+            footerBanners: dashboardEntity.banners['footer_banner'] ?? [],
           ),
-        );
-      },
+        ),
+      ),
+      onError: (errorMessage) => emit(
+        state.copyWith(
+          dashboardState: DashboardState(
+            getDashboardState: GetDashboardStates.failure,
+            getDashboardErrorMessage: errorMessage,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _onLoadmoreCategoryProducts(
+    LoadMoreCategoryProductsEvent event,
+    Emitter<HomeState> emit,
+  ) async {
+    final current = state.categoryProductsState;
+    if (!current.hasMore) return;
+    if (!current.hasMore ||
+        current.getCategoryState == GetCategoryStates.loading) {
+      return;
+    }
+
+    final int nextPage = current.page + 1;
+
+    final getMoreProductsResult = await getProductsUsecase(
+      catecoryId: event.categoryId,
+      page: nextPage,
+    );
+
+    getMoreProductsResult.fold(
+      (failure) {},
+      (success) => emit(
+        state.copyWith(
+          categoryProductsState: current.copyWith(
+            getCategoryState: GetCategoryStates.success,
+            categoryProducts: [
+              ...current.categoryProducts!,
+              ...success.products,
+            ],
+            hasMore: success.hasMore,
+            page: nextPage,
+          ),
+        ),
+      ),
     );
   }
 }

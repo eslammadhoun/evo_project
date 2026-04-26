@@ -27,16 +27,40 @@ class ProductsPage extends StatefulWidget {
 }
 
 class _ProductsPageState extends State<ProductsPage> {
+  late ScrollController _scrollController;
+
   @override
   void initState() {
     super.initState();
-
+    _scrollController = ScrollController();
+    _scrollController.addListener(_onScroll);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      print('Category Id is : ${widget.categoryId}');
       context.read<HomeBloc>().add(
         GetCatecoryProductsEvent(categoryId: widget.categoryId ?? '0'),
       );
     });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  bool _isFetching = false;
+
+  void _onScroll() {
+    if (!_scrollController.hasClients || _isFetching) return;
+    final state = context.read<HomeBloc>().state.categoryProductsState;
+    final position = _scrollController.position;
+    if (!state.hasMore) return;
+    if (position.pixels >= position.maxScrollExtent - 200) {
+      _isFetching = true;
+
+      context.read<HomeBloc>().add(
+        LoadMoreCategoryProductsEvent(categoryId: widget.categoryId!),
+      );
+    }
   }
 
   @override
@@ -115,57 +139,82 @@ class _ProductsPageState extends State<ProductsPage> {
                       ],
                     ),
                     const SizedBox(height: 14),
-                    BlocConsumer<HomeBloc, HomeState>(
-                      listener: (BuildContext context, state) {
-                        if (state.categoryProductsState.getCategoryState ==
-                            GetCategoryStates.failure) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                state
-                                    .categoryProductsState
-                                    .getCategoryErrorMessage!,
-                              ),
-                            ),
-                          );
+
+                    BlocListener<HomeBloc, HomeState>(
+                      listenWhen: (prev, curr) =>
+                          prev.categoryProductsState.page !=
+                              curr.categoryProductsState.page ||
+                          prev.categoryProductsState.getCategoryState !=
+                              curr.categoryProductsState.getCategoryState,
+                      listener: (context, state) {
+                        final categoryState = state.categoryProductsState;
+
+                        if (categoryState.getCategoryState ==
+                                GetCategoryStates.success ||
+                            categoryState.getCategoryState ==
+                                GetCategoryStates.failure) {
+                          _isFetching = false;
                         }
                       },
-                      builder: (BuildContext context, state) {
-                        if (state.categoryProductsState.getCategoryState ==
-                            GetCategoryStates.loading) {
-                          return Center(
-                            child: AppLoadingIndicator(
-                              size: 65,
-                              strokeWidth: 8,
-                            ),
-                          );
-                        }
-                        if (state.categoryProductsState.getCategoryState ==
-                            GetCategoryStates.success) {
-                          return Expanded(
-                            child: GridView.builder(
-                              itemCount: state
-                                  .categoryProductsState
-                                  .categoryProducts!
-                                  .length,
-                              gridDelegate:
-                                  SliverGridDelegateWithFixedCrossAxisCount(
-                                    crossAxisCount: 2,
-                                    crossAxisSpacing: 15,
-                                    mainAxisSpacing: 15,
-                                    childAspectRatio: 0.6,
+                      child:
+                          BlocSelector<
+                            HomeBloc,
+                            HomeState,
+                            CategoryProductsState
+                          >(
+                            selector: (state) => state.categoryProductsState,
+                            builder: (context, categoryState) {
+                              if (categoryState.getCategoryState ==
+                                  GetCategoryStates.loading) {
+                                return const Center(
+                                  child: AppLoadingIndicator(
+                                    size: 65,
+                                    strokeWidth: 8,
                                   ),
-                              itemBuilder: (context, index) => ProductCard(
-                                cardHeight: 240,
-                                product: state
-                                    .categoryProductsState
-                                    .categoryProducts![index],
-                              ),
-                            ),
-                          );
-                        }
-                        return SizedBox();
-                      },
+                                );
+                              }
+
+                              if (categoryState.getCategoryState ==
+                                  GetCategoryStates.success) {
+                                final list = categoryState.categoryProducts!;
+                                final hasMore = categoryState.hasMore;
+
+                                return Expanded(
+                                  child: GridView.builder(
+                                    physics: const BouncingScrollPhysics(),
+                                    cacheExtent: 800,
+                                    controller: _scrollController,
+                                    itemCount: list.length + (hasMore ? 1 : 0),
+                                    gridDelegate:
+                                        const SliverGridDelegateWithFixedCrossAxisCount(
+                                          crossAxisCount: 2,
+                                          crossAxisSpacing: 15,
+                                          mainAxisSpacing: 15,
+                                          childAspectRatio: 0.6,
+                                        ),
+                                    itemBuilder: (context, index) {
+                                      if (index < list.length) {
+                                        return ProductCard(
+                                          key: ValueKey(list[index].productId),
+                                          cardHeight: 240,
+                                          product: list[index],
+                                        );
+                                      }
+
+                                      return Center(
+                                        child: AppLoadingIndicator(
+                                          size: 60,
+                                          strokeWidth: 8,
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                );
+                              }
+
+                              return const SizedBox();
+                            },
+                          ),
                     ),
                   ],
                 ),

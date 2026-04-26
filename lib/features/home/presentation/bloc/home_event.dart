@@ -20,3 +20,8 @@ class GetRelatedProductsEvent extends HomeEvent {
 }
 
 class GetDashboardEvent extends HomeEvent {}
+
+class LoadMoreCategoryProductsEvent extends HomeEvent {
+  final String categoryId;
+  const LoadMoreCategoryProductsEvent({required this.categoryId});
+}
