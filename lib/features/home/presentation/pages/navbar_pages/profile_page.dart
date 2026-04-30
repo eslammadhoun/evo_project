@@ -1,7 +1,6 @@
 import 'package:evo_project/core/constants/spacing.dart';
 import 'package:evo_project/core/extensions/extensions.dart';
 import 'package:evo_project/core/logger/app_logger.dart';
-import 'package:evo_project/core/router/route_names.dart';
 import 'package:evo_project/core/router/route_paths.dart';
 import 'package:evo_project/core/shared/widgets/app_drawer.dart';
 import 'package:evo_project/core/shared/widgets/global_button.dart';
@@ -15,9 +14,31 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
 
-class ProfilePage extends StatelessWidget {
+class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
+
+  @override
+  State<ProfilePage> createState() => _ProfilePageState();
+}
+
+class _ProfilePageState extends State<ProfilePage> {
+  bool isEditing = false;
+  Future<void> _pickAndUploadImage() async {
+    final picker = ImagePicker();
+
+    final pickedFile = await picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 70,
+    );
+
+    if (pickedFile == null) return;
+
+    final filePath = pickedFile.path;
+
+    // context.read<UploadBloc>().add(UploadImageEvent(filePath));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -51,21 +72,21 @@ class ProfilePage extends StatelessWidget {
                     title: 'Payment method',
                     iconName: 'credit-card',
                     onTap: () =>
-                        context.pushNamed(RouteNames.productDetailsPage),
+                        StatefulNavigationShell.of(context).goBranch(0),
                   ),
                   _profileWidget(
                     context: context,
                     title: 'Delivery address',
                     iconName: 'map-pin',
                     onTap: () =>
-                        context.pushNamed(RouteNames.productDetailsPage),
+                        StatefulNavigationShell.of(context).goBranch(0),
                   ),
                   _profileWidget(
                     context: context,
                     title: 'Promocodes & gift cards',
                     iconName: 'gift',
                     onTap: () =>
-                        context.pushNamed(RouteNames.productDetailsPage),
+                        StatefulNavigationShell.of(context).goBranch(0),
                   ),
                   _profileWidget(
                     context: context,
@@ -99,11 +120,45 @@ class ProfilePage extends StatelessWidget {
       child: Row(
         children: [
           Container(
-            width: 60,
-            height: 60,
+            width: 60.w(context),
+            height: 60.h(context),
             decoration: BoxDecoration(
-              shape: BoxShape.circle,
+              borderRadius: BorderRadius.circular(30.w(context)),
               color: Color(0xffECF3FA),
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(30.w(context)),
+              child: Stack(
+                children: [
+                  Positioned.fill(
+                    child: Image.asset(
+                      'lib/assets/images/image.png',
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                  isEditing
+                      ? Center(
+                          child: InkWell(
+                            onTap: () => _pickAndUploadImage(),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                vertical: 6,
+                                horizontal: 10,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Color(0xffDBE9F5).withAlpha(150),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: Text(
+                                'Edit',
+                                style: context.textStyles.bodyMedium,
+                              ),
+                            ),
+                          ),
+                        )
+                      : SizedBox(),
+                ],
+              ),
             ),
           ),
           const SizedBox(width: 14),
@@ -120,11 +175,21 @@ class ProfilePage extends StatelessWidget {
                       ),
                     ),
                     InkWell(
-                      onTap: () => AppLogger.info('Editng name...'),
+                      onTap: () {
+                        isEditing
+                            ? AppLogger.info('Editng Done...')
+                            : AppLogger.info('Editng Now...');
+                        setState(() {
+                          isEditing = !isEditing;
+                        });
+                      },
                       child: Padding(
                         padding: const EdgeInsets.all(8.0),
                         child: SvgPicture.asset(
-                          'lib/assets/icons/edit-pin.svg',
+                          isEditing
+                              ? 'lib/assets/icons/check.svg'
+                              : 'lib/assets/icons/edit-pin.svg',
+                          color: isEditing ? Color(0xff00824B) : null,
                         ),
                       ),
                     ),
@@ -225,41 +290,45 @@ class ProfilePage extends StatelessWidget {
           ),
           SizedBox(height: 30.h(context)),
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              GlobalButton(
-                text: 'CANCEL',
-                onTap: () => Navigator.of(context).pop(),
-                height: 50.h(context),
-                width: 120.w(context),
+              Expanded(
+                child: GlobalButton(
+                  text: 'CANCEL',
+                  onTap: () => Navigator.of(context).pop(),
+                  height: 50.h(context),
+                ),
               ),
-              SizedBox(width: 15.w(context)),
-              BlocConsumer<AuthBloc, AuthState>(
-                builder: (BuildContext context, state) {
-                  return GlobalButton(
-                    text: 'SURE',
-                    onTap: () async {
-                      context.read<AuthBloc>().add(LogoutEvent());
-                    },
-                    height: 50.h(context),
-                    width: 120.w(context),
-                    isFilled: false,
-                    child: state is AuthLoading
-                        ? const AppLoadingIndicator(size: 40, strokeWidth: 5)
-                        : null,
-                  );
-                },
-                listener: (context, state) {
-                  if (state is LogoutSuccess) {
-                    context.go(RoutePaths.signin);
-                  }
 
-                  if (state is AuthError) {
-                    ScaffoldMessenger.of(
-                      context,
-                    ).showSnackBar(SnackBar(content: Text(state.message)));
-                  }
-                },
+              SizedBox(width: 12),
+
+              Expanded(
+                child: BlocConsumer<AuthBloc, AuthState>(
+                  builder: (context, state) {
+                    return GlobalButton(
+                      text: 'SURE',
+                      onTap: () {
+                        context.read<AuthBloc>().add(LogoutEvent());
+                      },
+                      height: 50.h(context),
+                      isFilled: false,
+                      child: state is AuthLoading
+                          ? const AppLoadingIndicator(size: 30, strokeWidth: 4)
+                          : null,
+                    );
+                  },
+                  listener: (context, state) {
+                    if (state is LogoutSuccess) {
+                      context.go(RoutePaths.signin, extra: {'has_back': false});
+                    }
+
+                    if (state is AuthError) {
+                      ScaffoldMessenger.of(
+                        context,
+                      ).showSnackBar(SnackBar(content: Text(state.message)));
+                      context.pop();
+                    }
+                  },
+                ),
               ),
             ],
           ),

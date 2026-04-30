@@ -1,19 +1,24 @@
-import 'package:evo_project/core/constants/spacing.dart';
 import 'package:evo_project/core/extensions/extensions.dart';
 import 'package:evo_project/core/helpers/media_type_helper.dart';
 import 'package:evo_project/core/router/route_names.dart';
+import 'package:evo_project/core/services/notifications_service.dart';
 import 'package:evo_project/core/shared/widgets/app_drawer.dart';
 import 'package:evo_project/core/shared/widgets/dots_indecator.dart';
 import 'package:evo_project/core/shared/widgets/header.dart';
 import 'package:evo_project/core/shared/widgets/loading_indecator.dart';
 import 'package:evo_project/core/shared/widgets/product_card.dart';
-import 'package:evo_project/core/theme/app_typography.dart';
+import 'package:evo_project/features/cart/Presentation/cartBloc/cart_bloc.dart';
+import 'package:evo_project/features/cart/Presentation/cartBloc/cart_event.dart';
 import 'package:evo_project/features/home/Domain/entities/dashboard_entity.dart';
 import 'package:evo_project/features/home/presentation/bloc/home_bloc.dart';
 import 'package:evo_project/features/home/presentation/bloc/home_event.dart';
 import 'package:evo_project/features/home/presentation/bloc/states/dashboard_state.dart';
 import 'package:evo_project/features/home/presentation/bloc/states/home_state.dart';
 import 'package:evo_project/features/home/presentation/bloc/states/related_products_state.dart';
+import 'package:evo_project/features/notifications/Data/models/notification_model.dart';
+import 'package:evo_project/features/notifications/Domain/entites/notification.dart';
+import 'package:evo_project/features/notifications/presentation/bloc/notifications_bloc.dart';
+import 'package:evo_project/features/notifications/presentation/bloc/notifications_event.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
@@ -34,8 +39,29 @@ class _HomePageState extends State<HomePage> {
     super.initState();
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      context.read<HomeBloc>().add(GetDashboardEvent());
-      context.read<HomeBloc>().add(GetRelatedProductsEvent(productId: '99790'));
+      await NotificationsService.showNotification(
+        title: 'Welcome back!',
+        body: 'Enjoy the shopping expireince',
+      );
+      if (mounted) {
+        context.read<NotificationsBloc>().add(
+          InsertNotificationEvent(
+            notificationEntity: NotificationEntity(
+              notificationId: '0',
+              title: 'Welcome back!',
+              body: 'Enjoy the shopping expireince',
+              notificationType: NotificationType.success,
+              dateTime: DateTime.now(),
+            ),
+          ),
+        );
+        context.read<CartBloc>().add(GetCartProductsEvent());
+        context.read<CartBloc>().add(GetCartDiscountEvent());
+        context.read<HomeBloc>().add(GetDashboardEvent());
+        context.read<HomeBloc>().add(
+          GetRelatedProductsEvent(productId: '99790'),
+        );
+      }
     });
   }
 
@@ -109,6 +135,7 @@ class _HomePageState extends State<HomePage> {
                                 ),
                               ),
                             ),
+
                             SliverToBoxAdapter(
                               child: _featuredProducts(context: context),
                             ),
@@ -174,62 +201,23 @@ class _HomePageState extends State<HomePage> {
     required BuildContext context,
     required BannerEntity banner,
   }) {
-    return Container(
-      decoration: BoxDecoration(
-        border: BoxBorder.fromLTRB(
-          top: BorderSide(color: Color(0xffDBE9F5), width: 4),
-        ),
+    return InkWell(
+      onTap: () => context.pushNamed(
+        RouteNames.productsPage,
+        extra: {'category_id': banner.categoryId, 'title': banner.categoryId},
       ),
-      child: Stack(
-        children: [
-          (banner.type == 'tall_video' || banner.type == 'tall_banner')
-              ? Positioned.fill(child: mediaWidget(banner.images.first.image))
-              : SizedBox(),
-
-          Positioned(
-            bottom: 110,
-            left: 20,
-            right: 20,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  banner.description,
-                  style: context.textStyles.headlineLarge!,
-                ),
-                SizedBox(height: 30.h(context)),
-                Container(
-                  padding: const EdgeInsets.symmetric(vertical: 4),
-                  decoration: BoxDecoration(
-                    border: Border.symmetric(
-                      horizontal: BorderSide(
-                        color: context.colors.primary,
-                        width: 2,
-                      ),
-                    ),
-                  ),
-                  child: InkWell(
-                    onTap: () => context.pushNamed(
-                      RouteNames.productsPage,
-                      extra: {
-                        'category_id': banner.categoryId,
-                        'title': banner.categoryId,
-                      },
-                    ),
-                    child: Text(
-                      'SHOP NOW',
-                      style: context.textStyles.bodyMedium!.copyWith(
-                        fontSize: 12,
-                        color: context.colors.primary,
-                        fontWeight: AppTypography.bold,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
+      child: Container(
+        decoration: BoxDecoration(
+          border: BoxBorder.fromLTRB(
+            top: BorderSide(color: Color(0xffDBE9F5), width: 4),
           ),
-        ],
+        ),
+        child:
+            (banner.type == 'full_tall_banner' ||
+                banner.type == 'tall_banner' ||
+                banner.type == 'tall_video')
+            ? mediaWidget(banner.images.first.image)
+            : Text('Eslam'),
       ),
     );
   }
@@ -255,7 +243,7 @@ class _HomePageState extends State<HomePage> {
           return Column(
             children: [
               Padding(
-                padding: Spacing.appPadding,
+                padding: const EdgeInsets.fromLTRB(20, 50, 20, 0),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -264,7 +252,13 @@ class _HomePageState extends State<HomePage> {
                       style: context.textStyles.headlineMedium,
                     ),
                     GestureDetector(
-                      onTap: () => print('Viewing All'),
+                      onTap: () => context.pushNamed(
+                        RouteNames.productsPage,
+                        extra: {
+                          'page_title': 'Featured products',
+                          'category_id': '1',
+                        },
+                      ),
                       child: Row(
                         children: [
                           Text(
@@ -292,12 +286,14 @@ class _HomePageState extends State<HomePage> {
                       state.relatedProductsState.relatedProducts!.length,
                       (index) => Padding(
                         padding: const EdgeInsets.only(right: 14),
-                        child: RepaintBoundary(
-                          child: ProductCard(
-                            cardHeight: 200,
-                            product: state
-                                .relatedProductsState
-                                .relatedProducts![index],
+                        child: SizedBox(
+                          width: 180,
+                          child: RepaintBoundary(
+                            child: ProductCard(
+                              product: state
+                                  .relatedProductsState
+                                  .relatedProducts![index],
+                            ),
                           ),
                         ),
                       ),

@@ -11,6 +11,8 @@ class AppPreferences {
   static const String keyIsAuthenticated = 'is_authenticated';
   static const String keyUserName = 'user_name';
   static const String keyUserEmail = 'user_email';
+  static const String keyIsUserHaveDiscount = 'have_discount';
+  static const String keyCartDiscount = 'cart_discount';
 
   // --- Generic Methods ---
   dynamic get(String key) => _prefs.get(key);
@@ -53,6 +55,14 @@ class AppPreferences {
   String getUserEmail() => _prefs.getString(keyUserEmail) ?? '';
   Future<bool> setUserEmail(String email) =>
       _prefs.setString(keyUserEmail, email);
+
+  // Get User Cart Discount
+  bool userHaveDicount() => _prefs.getBool(keyIsUserHaveDiscount) ?? false;
+  double getCartDiscount() => _prefs.getDouble(keyCartDiscount) ?? 0.0;
+  Future<bool> setUserHavingDiscount(bool haveDiscount) =>
+      _prefs.setBool(keyIsUserHaveDiscount, haveDiscount);
+  Future<bool> setDiscount(double discount) =>
+      setValue(keyCartDiscount, discount);
 
   // Logout
   Future<void> logout() async {

@@ -59,6 +59,7 @@ class _NewPasswordPageState extends State<NewPasswordPage> {
           ),
           const SizedBox(height: 40),
           GlobalTextField(
+            validationMode: AutovalidateMode.onUserInteraction,
             controller: passwordController,
             suffixIcon: InkWell(
               onTap: () => setState(() {
@@ -77,6 +78,7 @@ class _NewPasswordPageState extends State<NewPasswordPage> {
           ),
           const SizedBox(height: 20),
           GlobalTextField(
+            validationMode: AutovalidateMode.onUserInteraction,
             controller: confirmPasswordController,
             suffixIcon: InkWell(
               onTap: () => setState(() {

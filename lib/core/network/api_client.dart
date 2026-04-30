@@ -32,15 +32,18 @@ abstract class ApiConsumer {
     Map<String, dynamic>? body,
     Map<String, dynamic>? queryParameters,
   });
+
   Future<dynamic> delete(
     String path, {
     Map<String, dynamic>? body,
+    bool formDataIsEnabled = false,
     Map<String, dynamic>? queryParameters,
   });
 }
 
 class ApiClient implements ApiConsumer {
   final Dio dioClient;
+
   ApiClient({required this.dioClient}) {
     (dioClient.httpClientAdapter as IOHttpClientAdapter).createHttpClient = () {
       HttpClient httpClient = HttpClient();
@@ -57,11 +60,10 @@ class ApiClient implements ApiConsumer {
       ..validateStatus = (status) {
         return status! < StatusCode.internalServerError;
       }
-      ..connectTimeout = const Duration(seconds: 60)
-      ..receiveTimeout = const Duration(seconds: 60)
+      ..connectTimeout = const Duration(seconds: 15)
+      ..receiveTimeout = const Duration(seconds: 15)
       ..sendTimeout = const Duration(seconds: 30);
 
-    // Add User's Interceptor
     dioClient.interceptors.add(sl<AppInterceptors>());
 
     if (kDebugMode) {
@@ -106,7 +108,7 @@ class ApiClient implements ApiConsumer {
       final response = await dioClient.post(
         path,
         queryParameters: queryParameters,
-        data: formDataIsEnabled == true ? FormData.fromMap(body ?? {}) : body,
+        data: formDataIsEnabled ? FormData.fromMap(body ?? {}) : body,
       );
 
       return _handleResponseAsJson(response);
@@ -170,9 +172,23 @@ class ApiClient implements ApiConsumer {
     }
   }
 
+  // ✅ UPDATED
   dynamic _handleResponseAsJson(Response<dynamic> response) {
     var res = ResponseWrapper<dynamic>();
+
     try {
+      // 🔥 NEW: handle non-JSON (HTML, String, etc)
+      if (response.data is! Map<String, dynamic> && response.data is! List) {
+        res.statusModel = StatusModel()
+          ..code = response.statusCode ?? 500
+          ..message = "Invalid response format (not JSON)"
+          ..error = 1
+          ..errorMessages = [];
+
+        res.data = response.data;
+        return res;
+      }
+
       res.statusModel = StatusModel();
       res.statusModel.code =
           response.data?["status"]?["code"] ?? response.statusCode ?? 500;
@@ -181,7 +197,7 @@ class ApiClient implements ApiConsumer {
 
       if (response.data?["status"]?["error_messages"] != null) {
         res.statusModel.errorMessages = List<String>.from(
-          response.data!["status"]["error_messages"],
+          response.data["status"]["error_messages"],
         );
       } else {
         res.statusModel.errorMessages = [];
@@ -201,15 +217,16 @@ class ApiClient implements ApiConsumer {
       } else {
         res.data = response.data;
       }
+
       return res;
     } catch (e) {
-      res.statusModel = StatusModel();
-      res.statusModel.code = response.statusCode ?? 500;
-      res.statusModel.message = "Unknown error";
-      res.statusModel.error = 1;
-      res.statusModel.errorMessages = [];
-      res.data = response.data;
+      res.statusModel = StatusModel()
+        ..code = response.statusCode ?? 500
+        ..message = "Unknown error"
+        ..error = 1
+        ..errorMessages = [];
 
+      res.data = response.data;
       return res;
     }
   }
@@ -218,39 +235,63 @@ class ApiClient implements ApiConsumer {
     switch (error.type) {
       case DioExceptionType.connectionTimeout:
         throw NetworkFailure("connection time out");
+
       case DioExceptionType.sendTimeout:
         throw NetworkFailure("send time out");
+
       case DioExceptionType.receiveTimeout:
         throw NetworkFailure("receive time out");
+
       case DioExceptionType.badResponse:
+        final data = error.response?.data;
+
         switch (error.response?.statusCode) {
           case StatusCode.badRequest:
-            // Correcting "massage" to "message" if possible, but keeping user logic
-            final massage = error.response?.data["massage"];
-            if (massage != null && massage.isNotEmpty) {
-              throw UserFailure(massage);
+            final message = data["message"] ?? data["massage"];
+            if (message != null && message.toString().isNotEmpty) {
+              throw UserFailure(message);
             }
             throw ServerFailure("bad request");
+
           case StatusCode.unauthorized:
             throw AuthFailure("unauthorized");
+
           case StatusCode.forbidden:
             throw AuthFailure("forbidden");
+
           case StatusCode.notFound:
             throw ServerFailure("not found");
+
           case StatusCode.confilct:
-            throw ServerFailure("confilct");
+            throw ServerFailure("conflict");
+
           case StatusCode.internalServerError:
             throw ServerFailure("internal server error");
+
+          case 503:
+            throw ServerFailure("Service Unavailable Server Down");
+
+          default:
+            // handle HTML or non-JSON response
+            if (data is String) {
+              throw ServerFailure(
+                "Service Unavailable (Server Down) (${error.response?.statusCode})",
+              );
+            }
+            throw ServerFailure("Server error (${error.response?.statusCode})");
         }
-        break;
+
       case DioExceptionType.cancel:
         throw ServerFailure("cancel");
+
       case DioExceptionType.unknown:
-        throw NetworkFailure("unknown");
+        throw NetworkFailure("No internet Connection");
+
       case DioExceptionType.badCertificate:
         throw ServerFailure("bad certificate");
+
       case DioExceptionType.connectionError:
-        return NetworkFailure("No internet or server unreachable");
+        throw NetworkFailure("No internet Connection");
     }
   }
 }

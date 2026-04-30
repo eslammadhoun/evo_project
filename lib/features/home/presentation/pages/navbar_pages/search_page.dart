@@ -29,7 +29,7 @@ class SearchPage extends StatelessWidget {
                   mainAxisSpacing: 15,
                   childAspectRatio: 0.55,
                 ),
-                itemBuilder: (context, index) => ProductCard(cardHeight: 240),
+                itemBuilder: (context, index) => ProductCard(product: null),
               ),
             ),
           ],

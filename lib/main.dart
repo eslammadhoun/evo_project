@@ -2,15 +2,18 @@ import 'package:evo_project/core/constants/providers.dart';
 import 'package:evo_project/core/di/service_locator.dart';
 import 'package:evo_project/core/env_config.dart';
 import 'package:evo_project/core/router/app_router.dart';
+import 'package:evo_project/core/services/notifications_service.dart';
+import 'package:evo_project/core/services/user_seesion.dart';
 import 'package:evo_project/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
   await EnvConfig.init(fileName: ".env.prod");
   await initDI();
+  await sl<UserSeesion>().refreshToken();
+  NotificationsService().init();
   runApp(const MyApp());
 }
 

@@ -1,5 +1,6 @@
 import 'package:evo_project/core/constants/spacing.dart';
 import 'package:evo_project/core/extensions/extensions.dart';
+import 'package:evo_project/core/helpers/currency_symbols.dart';
 import 'package:evo_project/core/shared/widgets/global_button.dart';
 import 'package:evo_project/core/shared/widgets/header.dart';
 import 'package:evo_project/core/theme/app_theme.dart';
@@ -192,7 +193,7 @@ class _FilterPageState extends State<FilterPage> {
                     width: labelWidth,
                     child: Center(
                       child: Text(
-                        '\$${minPrice.toInt()}',
+                        CurrencySymbols.format.format(minPrice.toInt()),
                         style: context.textStyles.bodyMedium,
                       ),
                     ),
@@ -206,7 +207,7 @@ class _FilterPageState extends State<FilterPage> {
                     width: labelWidth,
                     child: Center(
                       child: Text(
-                        '\$${maxPrice.toInt()}',
+                        CurrencySymbols.format.format(maxPrice.toInt()),
                         style: context.textStyles.bodyMedium,
                       ),
                     ),

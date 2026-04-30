@@ -4,6 +4,7 @@ import 'package:evo_project/core/network/api_endpoints.dart';
 import 'package:evo_project/core/network/response_wrapper.dart';
 import 'package:evo_project/core/services/app_preferences.dart';
 import 'package:evo_project/features/auth/Data/models/user_model.dart';
+import 'package:flutter/material.dart';
 
 class UserSeesion {
   final ApiConsumer apiConsumer;
@@ -40,5 +41,35 @@ class UserSeesion {
     }
     await appPreferences.logout();
     return logoutResponse;
+  }
+
+  Future<bool> refreshToken() async {
+    try {
+      final token = appPreferences.getToken();
+
+      if (token == null || token.isEmpty) return false;
+
+      final ResponseWrapper response = await apiConsumer.post(
+        ApiEndpoints.refreshToken,
+        body: {'customer_token': token},
+      );
+
+      if (response.statusModel.error == 0 && response.data != null) {
+        final newToken =
+            response.data[0]['token'] ??
+            response.data[0]['customer_token'] ??
+            response.data;
+
+        if (newToken != null && newToken.toString().isNotEmpty) {
+          await appPreferences.setToken(newToken.toString());
+          return true;
+        }
+      }
+
+      return false;
+    } catch (e) {
+      debugPrint("Refresh Token Error: $e");
+      return false;
+    }
   }
 }

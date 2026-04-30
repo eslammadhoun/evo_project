@@ -70,7 +70,10 @@ class _OnboardingState extends State<Onboarding> {
                         selectedIndex++;
                       })
                     : {
-                        context.pushNamed(RouteNames.signin),
+                        context.pushNamed(
+                          RouteNames.signin,
+                          extra: {'has_back': true},
+                        ),
                         appPreferences.setOnboardingCompleted(true),
                       },
                 text: selectedIndex != 2 ? 'NEXT' : 'GET STARTED',

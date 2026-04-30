@@ -33,13 +33,11 @@ class _SplashPageState extends State<SplashPage> {
             : '----------------------------User Is Not Authenticated----------------------------',
       );
       if (!mounted) return;
-      context.go(
-        isAuthenticated
-            ? RoutePaths.home
-            : isOnboardingCompleted
-            ? RoutePaths.signin
-            : RoutePaths.onboarding,
-      );
+      isAuthenticated
+          ? context.go(RoutePaths.home)
+          : isOnboardingCompleted
+          ? context.go(RoutePaths.signin, extra: {'has_back': false})
+          : context.go(RoutePaths.onboarding);
     });
   }
 

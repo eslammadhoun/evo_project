@@ -10,16 +10,7 @@ import 'package:go_router/go_router.dart';
 
 class AppInterceptors extends Interceptor {
   final AppPreferences appPreferences;
-  final Dio _dio;
-
-  // Flag to prevent infinite retry loops
-  bool _isRefreshing = false;
-
-  AppInterceptors({required this.appPreferences, required Dio dio})
-    : _dio = dio;
-
-  static const String _refreshTokenEndpoint =
-      'https://mcstaging2.femi9.com/rest/V1/ktpl/account/refreshToken';
+  AppInterceptors({required this.appPreferences, required Dio dio});
 
   @override
   Future<void> onRequest(
@@ -35,7 +26,6 @@ class AppInterceptors extends Interceptor {
 
     final token = appPreferences.getToken();
     if (token != null && token.isNotEmpty) {
-      debugPrint("Auth Token: $token");
       options.headers["Authorization"] = "Bearer $token";
     }
 
@@ -54,35 +44,8 @@ class AppInterceptors extends Interceptor {
 
     // Handle 401 here since validateStatus accepts it
     if (response.statusCode == 401) {
-      // Don't retry logout endpoint
-      final isLogoutRequest = response.requestOptions.path.contains('logout');
-
-      if (!isLogoutRequest && !_isRefreshing) {
-        _isRefreshing = true;
-        final refreshSuccess = await _tryRefreshToken();
-        debugPrint('refresh token result: $refreshSuccess');
-        _isRefreshing = false;
-
-        if (refreshSuccess) {
-          try {
-            final newToken = appPreferences.getToken();
-            final retryOptions = response.requestOptions;
-            retryOptions.headers['Authorization'] = 'Bearer $newToken';
-            final retryResponse = await _dio.fetch(retryOptions);
-            return handler.next(retryResponse);
-          } catch (_) {
-            await _logoutAndRedirect();
-            return handler.next(response);
-          }
-        } else {
-          await _logoutAndRedirect();
-          return handler.next(response);
-        }
-      } else {
-        // It's a logout request with 401 → just clear locally and redirect
-        await _logoutAndRedirect();
-        return handler.next(response);
-      }
+      await _logoutAndRedirect();
+      return handler.next(response);
     }
     dynamic logData = response.data;
 
@@ -132,44 +95,6 @@ class AppInterceptors extends Interceptor {
     super.onError(err, handler);
   }
 
-  /// Returns true if refresh succeeded and new token was saved
-  Future<bool> _tryRefreshToken() async {
-    try {
-      final currentToken = appPreferences.getToken();
-      if (currentToken == null || currentToken.isEmpty) return false;
-
-      final response = await Dio().post(
-        _refreshTokenEndpoint,
-        data: {'customer_token': currentToken},
-        options: Options(
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-          },
-        ),
-      );
-
-      if (response.statusCode == 200 && response.data != null) {
-        // Adjust this based on the actual response structure
-        final newToken =
-            response.data['token'] ??
-            response.data['customer_token'] ??
-            response.data;
-
-        if (newToken != null && newToken.toString().isNotEmpty) {
-          await appPreferences.setToken(newToken.toString());
-          debugPrint("Token refreshed successfully");
-          return true;
-        }
-      }
-
-      return false;
-    } catch (e) {
-      debugPrint("Token refresh failed: $e");
-      return false;
-    }
-  }
-
   Future<void> _logoutAndRedirect() async {
     debugPrint("Session expired → logging out");
 
@@ -178,7 +103,9 @@ class AppInterceptors extends Interceptor {
     // Navigate to signin, removing all previous routes
     final context = sl<GlobalKey<NavigatorState>>().currentContext;
     if (context != null && context.mounted) {
-      GoRouter.of(context).goNamed(RouteNames.signin);
+      GoRouter.of(
+        context,
+      ).goNamed(RouteNames.signin, extra: {'has_back': false});
     }
   }
 }

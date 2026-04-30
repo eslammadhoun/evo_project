@@ -2,7 +2,10 @@ import 'package:evo_project/core/constants/spacing.dart';
 import 'package:evo_project/core/extensions/extensions.dart';
 import 'package:evo_project/core/router/route_names.dart';
 import 'package:evo_project/core/shared/widgets/info_button.dart';
+import 'package:evo_project/features/notifications/presentation/bloc/notifications_bloc.dart';
+import 'package:evo_project/features/notifications/presentation/bloc/notifications_event.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:go_router/go_router.dart';
 
@@ -68,12 +71,18 @@ class AppDrawer extends StatelessWidget {
               title: 'Notifications',
               iconName: 'bell',
               hasLeading: true,
+              onTap: () async {
+                context.read<NotificationsBloc>().add(GetNotificationsEvent());
+                await context.pushNamed(RouteNames.notificationsPage);
+                if (context.mounted) {}
+              },
             ),
             const SizedBox(height: 10),
             InfoButtom(
               title: 'Support',
               iconName: 'help-circle',
               hasLeading: false,
+              onTap: () {},
             ),
             Spacer(),
           ],

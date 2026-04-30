@@ -60,7 +60,10 @@ class SuccesPage extends StatelessWidget {
                 text: buttonText,
                 onTap: () {
                   if (destination == 'signIn') {
-                    context.goNamed(RouteNames.signin);
+                    context.goNamed(
+                      RouteNames.signin,
+                      extra: {'has_back': true},
+                    );
                   } else if (destination == 'home') {
                     context.goNamed(RouteNames.home);
                   }

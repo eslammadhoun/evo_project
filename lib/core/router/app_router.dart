@@ -7,6 +7,7 @@ import 'package:evo_project/features/auth/presentation/pages/forget_password.dar
 import 'package:evo_project/features/auth/presentation/pages/new_password.dart';
 import 'package:evo_project/features/auth/presentation/pages/signin_page.dart';
 import 'package:evo_project/features/auth/presentation/pages/signup_page.dart';
+import 'package:evo_project/features/cart/Presentation/pages/checkout_page.dart';
 import 'package:evo_project/features/home/Domain/usecases/get_category.dart';
 import 'package:evo_project/features/home/Domain/usecases/get_dashboard.dart';
 import 'package:evo_project/features/home/Domain/usecases/get_product.dart';
@@ -17,6 +18,7 @@ import 'package:evo_project/features/home/presentation/pages/filter_page.dart';
 import 'package:evo_project/features/home/presentation/pages/product_description_page.dart';
 import 'package:evo_project/features/home/presentation/pages/product_details_page.dart';
 import 'package:evo_project/features/home/presentation/pages/products_page.dart';
+import 'package:evo_project/features/notifications/presentation/pages/notifications_page.dart';
 import 'package:evo_project/features/onboarding/presentation/pages/onboarding.dart';
 import 'package:evo_project/features/onboarding/presentation/pages/splash_page.dart';
 import 'package:flutter/material.dart';
@@ -46,7 +48,11 @@ class AppRouter {
       GoRoute(
         path: RoutePaths.signin,
         name: RouteNames.signin,
-        builder: (context, state) => SigninPage(),
+        builder: (context, state) {
+          final Map<String, dynamic> extraData =
+              state.extra as Map<String, dynamic>;
+          return SigninPage(hasBack: extraData['has_back']);
+        },
       ),
 
       // SignUp Page
@@ -141,6 +147,20 @@ class AppRouter {
         path: RoutePaths.filterPage,
         name: RouteNames.filterPage,
         builder: (context, state) => FilterPage(),
+      ),
+
+      // Checkout Page
+      GoRoute(
+        path: RoutePaths.checkoutPage,
+        name: RouteNames.checkoutPage,
+        builder: (context, state) => CheckoutPage(),
+      ),
+
+      // Notifications Page
+      GoRoute(
+        path: RoutePaths.notificationsPage,
+        name: RouteNames.notificationsPage,
+        builder: (context, state) => NotificationsPage(),
       ),
     ],
   );

@@ -1,4 +1,3 @@
-import 'package:evo_project/core/constants/spacing.dart';
 import 'package:evo_project/core/extensions/extensions.dart';
 import 'package:evo_project/core/helpers/validators.dart';
 import 'package:evo_project/core/router/route_names.dart';
@@ -33,35 +32,62 @@ class _SignupPageState extends State<SignupPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       body: SafeArea(
-        child: Padding(
-          padding: Spacing.appPadding,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              InkWell(
-                onTap: () => context.pop(),
-                child: Icon(Icons.arrow_back_ios),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              padding: EdgeInsets.fromLTRB(
+                16,
+                16,
+                16,
+                MediaQuery.of(context).viewInsets.bottom + 16,
               ),
-              _signInForm(context: context),
-              SizedBox(),
-            ],
-          ),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                child: IntrinsicHeight(
+                  child: Column(
+                    children: [
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: InkWell(
+                          onTap: () => context.pop(),
+                          child: const Icon(Icons.arrow_back_ios),
+                        ),
+                      ),
+
+                      Expanded(
+                        child: Center(
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(maxWidth: 400),
+                            child: _signUpForm(context: context),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
         ),
       ),
     );
   }
 
-  // Sigin in form
-  Widget _signInForm({required BuildContext context}) {
+  // Signup in form
+  Widget _signUpForm({required BuildContext context}) {
     return Form(
       key: _formKey,
       child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text('Sign up', style: context.textStyles.headlineLarge),
           const SizedBox(height: 30),
           GlobalTextField(
+            validationMode: AutovalidateMode.onUserInteraction,
             controller: nameController,
             textInputType: TextInputType.text,
             text: 'NAME',
@@ -69,18 +95,18 @@ class _SignupPageState extends State<SignupPage> {
           ),
           const SizedBox(height: 20),
           GlobalTextField(
+            validationMode: AutovalidateMode.onUserInteraction,
             controller: emailController,
             suffixIcon: isValidEmail ? Icon(Icons.check, size: 20) : null,
             onChanged: (val) {
               final result = Validators.validateField(
                 TextFormFieldType.email,
-                emailController.text,
+                val,
               );
-              result == null
-                  ? setState(() {
-                      isValidEmail = !isValidEmail;
-                    })
-                  : null;
+
+              setState(() {
+                isValidEmail = result == null;
+              });
             },
             textInputType: TextInputType.emailAddress,
             text: 'EMAIL',
@@ -88,6 +114,7 @@ class _SignupPageState extends State<SignupPage> {
           ),
           const SizedBox(height: 20),
           GlobalTextField(
+            validationMode: AutovalidateMode.onUserInteraction,
             controller: passwordController,
             suffixIcon: InkWell(
               onTap: () => setState(() {
@@ -106,6 +133,7 @@ class _SignupPageState extends State<SignupPage> {
           ),
           const SizedBox(height: 20),
           GlobalTextField(
+            validationMode: AutovalidateMode.onUserInteraction,
             controller: confirmPasswordController,
             validator: (val) {
               return confirmPasswordController.text != passwordController.text
@@ -155,7 +183,10 @@ class _SignupPageState extends State<SignupPage> {
                 ),
               ),
               InkWell(
-                onTap: () => context.pushNamed(RouteNames.signin),
+                onTap: () => context.pushNamed(
+                  RouteNames.signin,
+                  extra: {'has_back': true},
+                ),
                 child: Text(
                   'Sign In',
                   style: context.textStyles.bodyMedium!.copyWith(

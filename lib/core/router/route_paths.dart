@@ -15,4 +15,6 @@ class RoutePaths {
   static const String productDetailsPage = '/product_details_page';
   static const String productDescriptionPage = '/product_description_page';
   static const String filterPage = '/filter_page';
+  static const String checkoutPage = '/checkout_page';
+  static const String notificationsPage = '/notifications_page';
 }

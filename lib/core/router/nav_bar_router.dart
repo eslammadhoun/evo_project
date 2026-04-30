@@ -1,11 +1,11 @@
 import 'package:evo_project/core/router/route_paths.dart';
 import 'package:go_router/go_router.dart';
-import 'package:evo_project/features/home/presentation/pages/navbar_pages/cart_page.dart';
+import 'package:evo_project/features/cart/Presentation/pages/cart_page.dart';
 import 'package:evo_project/features/home/presentation/pages/navbar_pages/home_page.dart';
 import 'package:evo_project/features/home/presentation/pages/main_page.dart';
 import 'package:evo_project/features/home/presentation/pages/navbar_pages/profile_page.dart';
 import 'package:evo_project/features/home/presentation/pages/navbar_pages/search_page.dart';
-import 'package:evo_project/features/home/presentation/pages/navbar_pages/wishlist_page.dart';
+import 'package:evo_project/features/wishlist/presentation/pages/wishlist_page.dart';
 
 final RouteBase bottomNavbarRouter = StatefulShellRoute.indexedStack(
   builder: (context, state, navigationShell) {
@@ -32,10 +32,7 @@ final RouteBase bottomNavbarRouter = StatefulShellRoute.indexedStack(
     // Cart Page
     StatefulShellBranch(
       routes: [
-        GoRoute(
-          path: RoutePaths.cart,
-          builder: (context, state) => const CartPage(),
-        ),
+        GoRoute(path: RoutePaths.cart, builder: (context, state) => CartPage()),
       ],
     ),
 
@@ -44,7 +41,7 @@ final RouteBase bottomNavbarRouter = StatefulShellRoute.indexedStack(
       routes: [
         GoRoute(
           path: RoutePaths.wishList,
-          builder: (context, state) => const WishlistPage(),
+          builder: (context, state) => WishlistPage(),
         ),
       ],
     ),

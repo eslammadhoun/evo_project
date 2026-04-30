@@ -17,12 +17,16 @@ class GlobalTextField extends StatelessWidget {
   final void Function(String)? onChanged;
   final bool? isRequierdValidator;
   final String? hintText;
+  final AutovalidateMode validationMode;
+  final int? minLines;
+  final int? maxLines;
 
   const GlobalTextField({
     super.key,
     required this.text,
     required this.fieldType,
     required this.textInputType,
+    required this.validationMode,
     this.validator,
     required this.controller,
     this.suffixIcon,
@@ -30,16 +34,18 @@ class GlobalTextField extends StatelessWidget {
     this.onChanged,
     this.isRequierdValidator,
     this.hintText,
+    this.minLines,
+    this.maxLines,
   });
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 50.h(context),
+      height: maxLines == null ? 50.h(context) : null,
       child: Center(
         child: TextFormField(
           controller: controller,
-          autovalidateMode: AutovalidateMode.onUserInteraction,
+          autovalidateMode: validationMode,
           validator: isRequierdValidator == null
               ? validator ??
                     ((val) =>
@@ -84,6 +90,8 @@ class GlobalTextField extends StatelessWidget {
           ),
           obscureText: obscureText,
           onChanged: onChanged,
+          maxLines: maxLines ?? 1,
+          minLines: minLines,
         ),
       ),
     );

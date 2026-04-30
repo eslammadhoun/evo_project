@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:evo_project/core/constants/spacing.dart';
 import 'package:evo_project/core/extensions/extensions.dart';
+import 'package:evo_project/core/helpers/currency_symbols.dart';
 import 'package:evo_project/core/router/route_names.dart';
 import 'package:evo_project/core/shared/widgets/dots_indecator.dart';
 import 'package:evo_project/core/shared/widgets/global_button.dart';
@@ -8,11 +9,18 @@ import 'package:evo_project/core/shared/widgets/header.dart';
 import 'package:evo_project/core/shared/widgets/loading_indecator.dart';
 import 'package:evo_project/core/shared/widgets/product_card.dart';
 import 'package:evo_project/core/theme/app_typography.dart';
+import 'package:evo_project/features/cart/Domain/entites/cart_item.dart';
+import 'package:evo_project/features/cart/Presentation/cartBloc/cart_bloc.dart';
+import 'package:evo_project/features/cart/Presentation/cartBloc/cart_event.dart';
+import 'package:evo_project/features/cart/Presentation/cartBloc/cart_state.dart';
 import 'package:evo_project/features/home/Domain/entities/product.dart';
 import 'package:evo_project/features/home/presentation/bloc/home_bloc.dart';
 import 'package:evo_project/features/home/presentation/bloc/states/home_state.dart';
 import 'package:evo_project/features/home/presentation/bloc/states/product_details_state.dart';
 import 'package:evo_project/features/home/presentation/bloc/states/related_products_state.dart';
+import 'package:evo_project/features/wishlist/Domain/Entites/wishlist_item.dart';
+import 'package:evo_project/features/wishlist/presentation/bloc/wishlist_bloc.dart';
+import 'package:evo_project/features/wishlist/presentation/bloc/wishlist_event.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
@@ -28,11 +36,11 @@ class ProductDetailsPage extends StatefulWidget {
 class _ProductDetailsPageState extends State<ProductDetailsPage>
     with SingleTickerProviderStateMixin {
   final ValueNotifier<int> productImageIndex = ValueNotifier(0);
+  final ValueNotifier<int> productQuantity = ValueNotifier(1);
   final ScrollController _scrollController = ScrollController();
 
   bool _isCollapsed = false;
   int _selectedSizeIndex = -1;
-  int _quantity = 1;
   int _selectedTab = 0;
   final double _collapseThreshold = 10.0;
 
@@ -55,6 +63,7 @@ class _ProductDetailsPageState extends State<ProductDetailsPage>
     _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
     productImageIndex.dispose();
+    productQuantity.dispose();
     super.dispose();
   }
 
@@ -80,56 +89,126 @@ class _ProductDetailsPageState extends State<ProductDetailsPage>
                 ),
               );
             } else {
-              return Stack(
-                children: [
-                  Column(
-                    children: [
-                      HeaderWidget(
-                        firstWidget: FirstWidget.back,
-                        midWidget: MidWidget.nothing,
-                        lastWidget: LastWidget.cart,
+              final Product product = state.productDetailsState.product!;
+              return BlocConsumer<CartBloc, CartState>(
+                listenWhen: (previous, current) =>
+                    previous.addProductToCartState !=
+                    current.addProductToCartState,
+                listener: (context, state) {
+                  if (state.addProductToCartState ==
+                      AddProductToCartState.failure) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          'faild to add product to cart, Try again, ${state.addProductToCartErrorMessage}',
+                        ),
                       ),
-                      Expanded(
-                        child: NotificationListener<ScrollNotification>(
-                          onNotification: (notification) {
-                            final offset = notification.metrics.pixels;
-                            final shouldCollapse = offset < _collapseThreshold;
-                            if (shouldCollapse != _isCollapsed) {
-                              setState(() => _isCollapsed = shouldCollapse);
-                            }
-                            return false;
-                          },
-                          child: ListView(
-                            controller: _scrollController,
-                            children: [
-                              _productImages(
-                                context: context,
-                                product: state.productDetailsState.product!,
+                    );
+                  } else if (state.addProductToCartState ==
+                      AddProductToCartState.success) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Product Added To Cart')),
+                    );
+                  }
+                },
+                builder: (context, state) {
+                  final bool isProductInCart = state.cartProducts.any(
+                    (e) => e.productId == product.productId,
+                  );
+                  // final CartItem productCart = state.cartProducts
+                  //     .firstWhere((e) => e.productId == product.productId);
+                  return Stack(
+                    children: [
+                      Column(
+                        children: [
+                          HeaderWidget(
+                            firstWidget: FirstWidget.back,
+                            midWidget: MidWidget.nothing,
+                            lastWidget: LastWidget.cart,
+                          ),
+                          Expanded(
+                            child: NotificationListener<ScrollNotification>(
+                              onNotification: (notification) {
+                                final offset = notification.metrics.pixels;
+                                final shouldCollapse =
+                                    offset < _collapseThreshold;
+                                if (shouldCollapse != _isCollapsed) {
+                                  setState(() => _isCollapsed = shouldCollapse);
+                                }
+                                return false;
+                              },
+                              child: ListView(
+                                controller: _scrollController,
+                                children: [
+                                  _productImages(
+                                    context: context,
+                                    product: product,
+                                  ),
+                                  _collapsedDetailsBar(context: context),
+                                  _productDetailsExpanded(
+                                    context: context,
+                                    product: product,
+                                  ),
+                                ],
                               ),
-                              _collapsedDetailsBar(context: context),
-                              _productDetailsExpanded(
-                                context: context,
-                                product: state.productDetailsState.product!,
-                              ),
-                            ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      Positioned(
+                        left: 20,
+                        bottom: 20,
+                        child: SizedBox(
+                          width: context.screenSize.width - 40,
+                          child: GlobalButton(
+                            text: isProductInCart
+                                ? 'Remove From Cart'
+                                : '+ ADD TO CART',
+                            onTap: () => isProductInCart
+                                ? {
+                                    context.read<CartBloc>().add(
+                                      DeleteProductFromCartEvent(
+                                        productId: product.productId!,
+                                      ),
+                                    ),
+                                    productQuantity.value = 1,
+                                  }
+                                : _selectedSizeIndex >= 0
+                                ? context.read<CartBloc>().add(
+                                    AddProductToCartEvent(
+                                      cartItem: CartItem(
+                                        productId: product.productId!,
+                                        name: product.name!,
+                                        price: product.price!,
+                                        quantity: productQuantity.value,
+                                        image: product.images![0].url!,
+                                        size: product
+                                            .options!
+                                            .first
+                                            .variants![_selectedSizeIndex]
+                                            .label!,
+                                      ),
+                                    ),
+                                  )
+                                : ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        'You Must Choose Product Size',
+                                      ),
+                                    ),
+                                  ),
+                            height: 50.h(context),
+                            child:
+                                state.addProductToCartState ==
+                                    AddProductToCartState.loading
+                                ? AppLoadingIndicator(size: 40, strokeWidth: 6)
+                                : null,
                           ),
                         ),
                       ),
                     ],
-                  ),
-                  Positioned(
-                    left: 20,
-                    bottom: 20,
-                    child: SizedBox(
-                      width: context.screenSize.width - 40,
-                      child: GlobalButton(
-                        text: '+ ADD TO CART',
-                        onTap: () => print('object'),
-                        height: 50.h(context),
-                      ),
-                    ),
-                  ),
-                ],
+                  );
+                },
               );
             }
           },
@@ -143,9 +222,17 @@ class _ProductDetailsPageState extends State<ProductDetailsPage>
     required BuildContext context,
     required Product product,
   }) {
+    final wishlistIds = context.select<WishlistBloc, List<WishlistItem>>(
+      (bloc) => bloc.state.wishlist,
+    );
+
+    final isFav = wishlistIds.any(
+      (item) => item.productId == product.productId,
+    );
+
     return Container(
       width: double.infinity,
-      height: context.screenSize.height * 0.55,
+      height: context.screenSize.height * 0.63,
       decoration: BoxDecoration(
         color: const Color.fromARGB(255, 222, 227, 235),
         border: BoxBorder.fromLTRB(
@@ -218,10 +305,22 @@ class _ProductDetailsPageState extends State<ProductDetailsPage>
             bottom: 24,
             right: 20,
             child: InkWell(
-              onTap: () => print('object'),
-              child: SvgPicture.asset(
-                'lib/assets/icons/heart.svg',
-                color: context.colors.secondary,
+              onTap: () {
+                context.read<WishlistBloc>().add(
+                  ToggleWishlistEvent(
+                    WishlistItem(
+                      productId: product.productId!,
+                      name: product.name!,
+                      image: product.images![0].url!,
+                      price: product.price!,
+                      rate: product.reviews?.toDouble() ?? 0,
+                    ),
+                  ),
+                );
+              },
+              child: Icon(
+                isFav ? Icons.favorite : Icons.favorite_border,
+                color: isFav ? Colors.red : context.colors.secondary,
               ),
             ),
           ),
@@ -392,7 +491,14 @@ class _ProductDetailsPageState extends State<ProductDetailsPage>
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(product.name!, style: context.textStyles.headlineMedium),
+              Expanded(
+                child: Text(
+                  product.name!,
+                  style: context.textStyles.headlineMedium,
+                  overflow: TextOverflow.ellipsis,
+                  softWrap: true,
+                ),
+              ),
               Row(
                 children: [
                   SvgPicture.asset('lib/assets/icons/star.svg', width: 16),
@@ -432,28 +538,28 @@ class _ProductDetailsPageState extends State<ProductDetailsPage>
                     ? Row(
                         children: [
                           Text(
-                            '\$${product.price! * product.discountPercentage!}   ',
+                            '${CurrencySymbols.format.format(product.price! * product.discountPercentage!)}   ',
                             style: context.textStyles.bodyMedium!.copyWith(
                               color: Colors.grey,
                               decoration: TextDecoration.lineThrough,
                             ),
                           ),
                           Text(
-                            '\$${product.price}',
+                            CurrencySymbols.format.format(product.price),
                             style: context.textStyles.headlineMedium,
                           ),
                         ],
                       )
                     : Text(
-                        '\$${product.price}',
+                        CurrencySymbols.format.format(product.price),
                         style: context.textStyles.headlineMedium,
                       ),
                 Row(
                   children: [
                     InkWell(
-                      onTap: () => setState(
-                        () => _quantity = (_quantity - 1).clamp(1, 99),
-                      ),
+                      onTap: () => productQuantity.value != 1
+                          ? productQuantity.value -= 1
+                          : null,
                       child: Padding(
                         padding: const EdgeInsets.all(4.0),
                         child: SvgPicture.asset(
@@ -465,16 +571,18 @@ class _ProductDetailsPageState extends State<ProductDetailsPage>
                     SizedBox(
                       width: 40.w(context),
                       child: Center(
-                        child: Text(
-                          '$_quantity',
-                          style: context.textStyles.bodySmall,
+                        child: ValueListenableBuilder(
+                          valueListenable: productQuantity,
+                          builder: (context, quantity, child) => Text(
+                            quantity.toString(),
+                            style: context.textStyles.bodySmall,
+                          ),
                         ),
                       ),
                     ),
                     InkWell(
-                      onTap: () => setState(
-                        () => _quantity = (_quantity + 1).clamp(1, 99),
-                      ),
+                      onTap: () =>
+                          productQuantity.value = productQuantity.value + 1,
                       child: Padding(
                         padding: const EdgeInsets.all(4.0),
                         child: SvgPicture.asset('lib/assets/icons/plus.svg'),
@@ -653,11 +761,13 @@ class _ProductDetailsPageState extends State<ProductDetailsPage>
                       state.relatedProductsState.relatedProducts!.length,
                       (index) => Padding(
                         padding: const EdgeInsets.only(right: 14),
-                        child: ProductCard(
-                          cardHeight: 200,
-                          product: state
-                              .relatedProductsState
-                              .relatedProducts![index],
+                        child: SizedBox(
+                          width: context.screenSize.width * 0.4,
+                          child: ProductCard(
+                            product: state
+                                .relatedProductsState
+                                .relatedProducts![index],
+                          ),
                         ),
                       ),
                     ),

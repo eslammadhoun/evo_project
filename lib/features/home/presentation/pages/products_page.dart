@@ -16,6 +16,7 @@ import 'package:go_router/go_router.dart';
 class ProductsPage extends StatefulWidget {
   final String? pageTitle;
   final String? categoryId;
+
   const ProductsPage({
     super.key,
     required this.pageTitle,
@@ -29,11 +30,15 @@ class ProductsPage extends StatefulWidget {
 class _ProductsPageState extends State<ProductsPage> {
   late ScrollController _scrollController;
 
+  bool _isFetching = false;
+
   @override
   void initState() {
     super.initState();
+
     _scrollController = ScrollController();
     _scrollController.addListener(_onScroll);
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<HomeBloc>().add(
         GetCatecoryProductsEvent(categoryId: widget.categoryId ?? '0'),
@@ -47,15 +52,18 @@ class _ProductsPageState extends State<ProductsPage> {
     super.dispose();
   }
 
-  bool _isFetching = false;
-
   void _onScroll() {
     if (!_scrollController.hasClients || _isFetching) return;
+
     final state = context.read<HomeBloc>().state.categoryProductsState;
     final position = _scrollController.position;
+
     if (!state.hasMore) return;
+
     if (position.pixels >= position.maxScrollExtent - 200) {
-      _isFetching = true;
+      setState(() {
+        _isFetching = true;
+      });
 
       context.read<HomeBloc>().add(
         LoadMoreCategoryProductsEvent(categoryId: widget.categoryId!),
@@ -82,9 +90,9 @@ class _ProductsPageState extends State<ProductsPage> {
                 padding: Spacing.appPadding,
                 child: Column(
                   children: [
+                    /// 🔹 Top bar
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         InkWell(
                           onTap: () => context.pushNamed(RouteNames.filterPage),
@@ -106,7 +114,7 @@ class _ProductsPageState extends State<ProductsPage> {
                           onTap: () => showDialog(
                             context: context,
                             builder: (context) {
-                              String selected = 'best match';
+                              String selected = 'Best match';
                               return Dialog(
                                 child: StatefulBuilder(
                                   builder: (context, setState) => _filterWidget(
@@ -138,6 +146,7 @@ class _ProductsPageState extends State<ProductsPage> {
                         ),
                       ],
                     ),
+
                     const SizedBox(height: 14),
 
                     BlocListener<HomeBloc, HomeState>(
@@ -153,7 +162,23 @@ class _ProductsPageState extends State<ProductsPage> {
                                 GetCategoryStates.success ||
                             categoryState.getCategoryState ==
                                 GetCategoryStates.failure) {
-                          _isFetching = false;
+                          if (mounted) {
+                            setState(() {
+                              _isFetching = false;
+                            });
+                          }
+                        }
+                        if (categoryState.getCategoryState ==
+                            GetCategoryStates.failure) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                state
+                                    .categoryProductsState
+                                    .getCategoryErrorMessage!,
+                              ),
+                            ),
+                          );
                         }
                       },
                       child:
@@ -166,48 +191,60 @@ class _ProductsPageState extends State<ProductsPage> {
                             builder: (context, categoryState) {
                               if (categoryState.getCategoryState ==
                                   GetCategoryStates.loading) {
-                                return const Center(
-                                  child: AppLoadingIndicator(
-                                    size: 65,
-                                    strokeWidth: 8,
+                                return const Expanded(
+                                  child: Center(
+                                    child: AppLoadingIndicator(
+                                      size: 65,
+                                      strokeWidth: 8,
+                                    ),
                                   ),
                                 );
                               }
-
                               if (categoryState.getCategoryState ==
                                   GetCategoryStates.success) {
                                 final list = categoryState.categoryProducts!;
-                                final hasMore = categoryState.hasMore;
-
                                 return Expanded(
-                                  child: GridView.builder(
-                                    physics: const BouncingScrollPhysics(),
-                                    cacheExtent: 800,
+                                  child: CustomScrollView(
                                     controller: _scrollController,
-                                    itemCount: list.length + (hasMore ? 1 : 0),
-                                    gridDelegate:
-                                        const SliverGridDelegateWithFixedCrossAxisCount(
-                                          crossAxisCount: 2,
-                                          crossAxisSpacing: 15,
-                                          mainAxisSpacing: 15,
-                                          childAspectRatio: 0.6,
+                                    physics: const BouncingScrollPhysics(),
+                                    slivers: [
+                                      /// 🔹 Grid
+                                      SliverGrid(
+                                        delegate: SliverChildBuilderDelegate((
+                                          context,
+                                          index,
+                                        ) {
+                                          return ProductCard(
+                                            key: ValueKey(
+                                              list[index].productId,
+                                            ),
+                                            product: list[index],
+                                          );
+                                        }, childCount: list.length),
+                                        gridDelegate:
+                                            SliverGridDelegateWithFixedCrossAxisCount(
+                                              crossAxisCount: 2,
+                                              crossAxisSpacing: 15,
+                                              mainAxisSpacing: 15,
+                                              childAspectRatio: 0.58,
+                                              mainAxisExtent: 280.h(context),
+                                            ),
+                                      ),
+                                      if (_isFetching)
+                                        const SliverToBoxAdapter(
+                                          child: Padding(
+                                            padding: EdgeInsets.symmetric(
+                                              vertical: 20,
+                                            ),
+                                            child: Center(
+                                              child: AppLoadingIndicator(
+                                                size: 45,
+                                                strokeWidth: 5,
+                                              ),
+                                            ),
+                                          ),
                                         ),
-                                    itemBuilder: (context, index) {
-                                      if (index < list.length) {
-                                        return ProductCard(
-                                          key: ValueKey(list[index].productId),
-                                          cardHeight: 240,
-                                          product: list[index],
-                                        );
-                                      }
-
-                                      return Center(
-                                        child: AppLoadingIndicator(
-                                          size: 60,
-                                          strokeWidth: 8,
-                                        ),
-                                      );
-                                    },
+                                    ],
                                   ),
                                 );
                               }
@@ -226,7 +263,7 @@ class _ProductsPageState extends State<ProductsPage> {
     );
   }
 
-  // Filter Widget
+  /// 🔹 Filter Widget
   Widget _filterWidget({
     required BuildContext context,
     required String selected,
@@ -279,7 +316,6 @@ class _ProductsPageState extends State<ProductsPage> {
     );
   }
 
-  // build filter type widget
   Widget _filterItem({
     required BuildContext context,
     required String filterType,

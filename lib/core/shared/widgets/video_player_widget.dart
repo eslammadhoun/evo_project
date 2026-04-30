@@ -1,3 +1,4 @@
+import 'package:evo_project/core/shared/widgets/loading_indecator.dart';
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 
@@ -34,7 +35,7 @@ class VideoPlayerWidgetState extends State<VideoPlayerWidget> {
   @override
   Widget build(BuildContext context) {
     if (!controller.value.isInitialized) {
-      return Center(child: CircularProgressIndicator());
+      return Center(child: AppLoadingIndicator(size: 60, strokeWidth: 8));
     }
 
     return FittedBox(

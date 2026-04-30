@@ -58,6 +58,7 @@ class _ForgetPasswordState extends State<ForgetPassword> {
           ),
           const SizedBox(height: 40),
           GlobalTextField(
+            validationMode: AutovalidateMode.onUserInteraction,
             controller: emailController,
             suffixIcon: isValidEmail ? Icon(Icons.check, size: 20) : null,
             onChanged: (val) {
