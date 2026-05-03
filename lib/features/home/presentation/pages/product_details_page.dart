@@ -83,10 +83,29 @@ class _ProductDetailsPageState extends State<ProductDetailsPage>
               );
             } else if (state.productDetailsState.getProductDetailsState ==
                 GetProductDetails.failure) {
-              return Center(
-                child: Text(
-                  state.productDetailsState.getProductDetailsErrorMessage!,
-                ),
+              return Column(
+                children: [
+                  BlocSelector<CartBloc, CartState, int>(
+                    selector: (state) => state.cartProducts.length,
+                    builder: (BuildContext context, cartProducts) =>
+                        HeaderWidget(
+                          firstWidget: FirstWidget.back,
+                          midWidget: MidWidget.nothing,
+                          lastWidget: LastWidget.cart,
+
+                          cartProducts: cartProducts,
+                        ),
+                  ),
+                  Expanded(
+                    child: Center(
+                      child: Text(
+                        state
+                            .productDetailsState
+                            .getProductDetailsErrorMessage!,
+                      ),
+                    ),
+                  ),
+                ],
               );
             } else {
               final Product product = state.productDetailsState.product!;
@@ -115,8 +134,6 @@ class _ProductDetailsPageState extends State<ProductDetailsPage>
                   final bool isProductInCart = state.cartProducts.any(
                     (e) => e.productId == product.productId,
                   );
-                  // final CartItem productCart = state.cartProducts
-                  //     .firstWhere((e) => e.productId == product.productId);
                   return Stack(
                     children: [
                       Column(

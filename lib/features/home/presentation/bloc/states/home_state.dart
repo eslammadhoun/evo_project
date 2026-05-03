@@ -3,18 +3,21 @@ import 'package:evo_project/features/home/presentation/bloc/states/category_prod
 import 'package:evo_project/features/home/presentation/bloc/states/dashboard_state.dart';
 import 'package:evo_project/features/home/presentation/bloc/states/product_details_state.dart';
 import 'package:evo_project/features/home/presentation/bloc/states/related_products_state.dart';
+import 'package:evo_project/features/home/presentation/bloc/states/upload_profile_image_state.dart';
 
 class HomeState extends Equatable {
   final CategoryProductsState categoryProductsState;
   final ProductDetailsState productDetailsState;
   final RelatedProductsState relatedProductsState;
   final DashboardState dashboardState;
+  final ProfileImageState profileImageState;
 
   const HomeState({
     required this.categoryProductsState,
     required this.productDetailsState,
     required this.relatedProductsState,
     required this.dashboardState,
+    required this.profileImageState,
   });
 
   factory HomeState.inital() {
@@ -23,6 +26,7 @@ class HomeState extends Equatable {
       productDetailsState: ProductDetailsState.inital(),
       relatedProductsState: RelatedProductsState.initial(),
       dashboardState: DashboardState.initial(),
+      profileImageState: ProfileImageState.initial(),
     );
   }
 
@@ -31,6 +35,7 @@ class HomeState extends Equatable {
     ProductDetailsState? productDetailsState,
     RelatedProductsState? relatedProductsState,
     DashboardState? dashboardState,
+    ProfileImageState? profileImageState,
   }) {
     return HomeState(
       categoryProductsState:
@@ -38,6 +43,7 @@ class HomeState extends Equatable {
       productDetailsState: productDetailsState ?? this.productDetailsState,
       relatedProductsState: relatedProductsState ?? this.relatedProductsState,
       dashboardState: dashboardState ?? this.dashboardState,
+      profileImageState: profileImageState ?? this.profileImageState,
     );
   }
 
@@ -47,5 +53,6 @@ class HomeState extends Equatable {
     productDetailsState,
     relatedProductsState,
     dashboardState,
+    profileImageState,
   ];
 }

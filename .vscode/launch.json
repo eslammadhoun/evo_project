@@ -1,0 +1,15 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Flutter (Rosetta)",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "debug",
+            "toolArgs": [],
+            "env": {
+                "FLUTTER_RUN_USING_ROSETTA": "true"
+            }
+        }
+    ]
+}

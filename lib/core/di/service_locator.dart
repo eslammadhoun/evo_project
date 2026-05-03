@@ -20,11 +20,13 @@ import 'package:evo_project/features/cart/Domain/usecases/set_cart_discount.dart
 import 'package:evo_project/features/cart/Domain/usecases/update_product_quantity.dart';
 import 'package:evo_project/features/cart/Presentation/cartBloc/cart_bloc.dart';
 import 'package:evo_project/features/home/Data/datasources/products_datasource.dart';
+import 'package:evo_project/features/home/Data/datasources/profile_image_datasource.dart';
 import 'package:evo_project/features/home/Data/repositories/products_repository.dart';
 import 'package:evo_project/features/home/Domain/usecases/get_dashboard.dart';
 import 'package:evo_project/features/home/Domain/usecases/get_product.dart';
 import 'package:evo_project/features/home/Domain/usecases/get_category.dart';
 import 'package:evo_project/features/home/Domain/usecases/get_related_products.dart';
+import 'package:evo_project/features/home/Domain/usecases/upload_profile_image.dart';
 import 'package:evo_project/features/home/presentation/bloc/home_bloc.dart';
 import 'package:evo_project/features/notifications/Data/datasources/notifications_datasource.dart';
 import 'package:evo_project/features/notifications/Data/repos/notifications_repo.dart';
@@ -92,7 +94,10 @@ Future<void> initDI() async {
     () => LoginUseCase(repository: sl<AuthRepoImp>()),
   );
   sl.registerLazySingleton<LogoutUsecase>(
-    () => LogoutUsecase(authRepository: sl<AuthRepoImp>()),
+    () => LogoutUsecase(
+      authRepository: sl<AuthRepoImp>(),
+      appDatabase: sl<AppDatabase>(),
+    ),
   );
 
   //* Blocs
@@ -108,6 +113,7 @@ Future<void> initDI() async {
   sl.registerLazySingleton<ProductsDatasource>(
     () => ProductsDatasource(apiClient: sl<ApiClient>()),
   );
+  sl.registerLazySingleton(() => ProfileImageDatasource(dioClient: sl<Dio>()));
 
   //* repositories
   sl.registerLazySingleton<ProductsRepository>(
@@ -127,7 +133,11 @@ Future<void> initDI() async {
   sl.registerLazySingleton<GetDashboardUsecase>(
     () => GetDashboardUsecase(productsRepository: sl<ProductsRepository>()),
   );
-
+  sl.registerLazySingleton<UploadProfileImageUsecase>(
+    () => UploadProfileImageUsecase(
+      profileImageDatasource: sl<ProfileImageDatasource>(),
+    ),
+  );
   //* Blocs
   sl.registerFactory<HomeBloc>(
     () => HomeBloc(
@@ -135,6 +145,7 @@ Future<void> initDI() async {
       getProductUsecase: sl<GetProductUsecase>(),
       getRelatedProductsUsecase: sl<GetRelatedProducts>(),
       getDashboardUsecase: sl<GetDashboardUsecase>(),
+      uploadProfileImageUsecase: sl<UploadProfileImageUsecase>(),
     ),
   );
 

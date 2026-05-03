@@ -32,6 +32,7 @@ class CartBloc extends Bloc<CartEvent, CartState> {
     on<UpdateProductQuantityEvent>(updateProductQuantity);
     on<ApplyPromoCodeEvent>(applyPromoCode);
     on<GetCartDiscountEvent>(getCartDiscount);
+    on<ResetPromoCodeEvent>(resetPromoCode);
   }
 
   Map<String, dynamic> _calculateCartBill(List<CartItem> items) {
@@ -185,6 +186,15 @@ class CartBloc extends Bloc<CartEvent, CartState> {
     } else {
       emit(state.copyWith(hasDiscount: false));
     }
+  }
+
+  Future<void> resetPromoCode(
+    ResetPromoCodeEvent event,
+    Emitter<CartState> emit,
+  ) async {
+    await setCartDiscountUsecase(cartDiscount: 0.0, userHaveDiscount: false);
+    emit(state.copyWith(hasDiscount: false, discountPercentage: 0.0));
+    emit(state.copyWith(cartBill: _calculateCartBill(state.cartProducts)));
   }
 
   Future<void> getCartDiscount(

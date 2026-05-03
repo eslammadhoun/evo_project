@@ -1,10 +1,9 @@
 import 'package:evo_project/core/extensions/extensions.dart';
 import 'package:evo_project/core/helpers/currency_symbols.dart';
 import 'package:evo_project/core/router/route_names.dart';
-import 'package:evo_project/core/shared/widgets/app_drawer.dart';
+import 'package:evo_project/core/services/snack_service.dart';
 import 'package:evo_project/core/shared/widgets/global_button.dart';
 import 'package:evo_project/core/shared/widgets/global_text_field.dart';
-import 'package:evo_project/core/shared/widgets/header.dart';
 import 'package:evo_project/core/shared/widgets/loading_indecator.dart';
 import 'package:evo_project/core/theme/app_typography.dart';
 import 'package:evo_project/core/theme/text_styles.dart';
@@ -24,92 +23,73 @@ class CartPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      resizeToAvoidBottomInset: true,
-      drawer: AppDrawer(),
-      body: SafeArea(
-        child: BlocSelector<CartBloc, CartState, bool>(
-          selector: (state) => state.cartProducts.isEmpty,
-          builder: (context, isEmpty) {
-            if (isEmpty) {
-              return Align(
-                alignment: Alignment.bottomCenter,
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-                  child: GlobalButton(
-                    text: 'SHOP NOW',
-                    onTap: () =>
-                        StatefulNavigationShell.of(context).goBranch(0),
-                    height: 50.h(context),
-                    isFilled: true,
-                  ),
+    return SafeArea(
+      child: BlocSelector<CartBloc, CartState, bool>(
+        selector: (state) => state.cartProducts.isEmpty,
+        builder: (context, isEmpty) {
+          if (isEmpty) {
+            return Align(
+              alignment: Alignment.bottomCenter,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                child: GlobalButton(
+                  text: 'SHOP NOW',
+                  onTap: () => StatefulNavigationShell.of(context).goBranch(0),
+                  height: 50.h(context),
+                  isFilled: true,
                 ),
-              );
-            } else {
-              return Column(
-                children: [
-                  HeaderWidget(
-                    firstWidget: FirstWidget.menu,
-                    midWidget: MidWidget.text,
-                    lastWidget: LastWidget.cart,
-                    text: 'Order',
+              ),
+            );
+          } else {
+            return LayoutBuilder(
+              builder: (context, constraints) {
+                return SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+
+                  padding: EdgeInsets.fromLTRB(
+                    16,
+                    0,
+                    16,
+                    MediaQuery.of(context).viewInsets.bottom + 20,
                   ),
 
-                  Expanded(
-                    child: LayoutBuilder(
-                      builder: (context, constraints) {
-                        return SingleChildScrollView(
-                          physics: const BouncingScrollPhysics(),
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minHeight: constraints.maxHeight,
+                    ),
 
-                          padding: EdgeInsets.fromLTRB(
-                            16,
-                            0,
-                            16,
-                            MediaQuery.of(context).viewInsets.bottom + 20,
+                    child: IntrinsicHeight(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          cartProductsList(context: context),
+
+                          SizedBox(height: 20.h(context)),
+
+                          promoCodeSection(context: context),
+
+                          const Spacer(),
+
+                          cartBillSection(context: context),
+
+                          SizedBox(height: 20.h(context)),
+
+                          GlobalButton(
+                            text: 'PROCCED TO CHECKOUT',
+                            onTap: () =>
+                                context.pushNamed(RouteNames.checkoutPage),
+                            height: 50.h(context),
+                            isFilled: true,
                           ),
-
-                          child: ConstrainedBox(
-                            constraints: BoxConstraints(
-                              minHeight: constraints.maxHeight,
-                            ),
-
-                            child: IntrinsicHeight(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  cartProductsList(context: context),
-
-                                  SizedBox(height: 20.h(context)),
-
-                                  promoCodeSectiopn(context: context),
-
-                                  const Spacer(),
-
-                                  cartBillSection(context: context),
-
-                                  SizedBox(height: 20.h(context)),
-
-                                  GlobalButton(
-                                    text: 'PROCCED TO CHECKOUT',
-                                    onTap: () => context.pushNamed(
-                                      RouteNames.checkoutPage,
-                                    ),
-                                    height: 50.h(context),
-                                    isFilled: true,
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        );
-                      },
+                        ],
+                      ),
                     ),
                   ),
-                ],
-              );
-            }
-          },
-        ),
+                );
+              },
+            );
+          }
+        },
       ),
     );
   }
@@ -133,9 +113,7 @@ class CartPage extends StatelessWidget {
         }
         if (state.deleteProductFromCartState ==
             DeleteProductFromCartState.success) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text('Product deleted from cart')));
+          SnackService.show('Product Deleted');
         }
       },
       builder: (context, state) {
@@ -149,7 +127,7 @@ class CartPage extends StatelessWidget {
           return SizedBox(
             height: state.cartProducts.length == 1
                 ? 115.h(context)
-                : 230.h(context),
+                : 260.h(context),
             width: context.screenSize.width - 20,
             child: ListView.separated(
               padding: EdgeInsets.only(top: 20),
@@ -183,7 +161,7 @@ class CartPage extends StatelessWidget {
   }
 
   // Build Promo code section
-  Widget promoCodeSectiopn({required BuildContext context}) {
+  Widget promoCodeSection({required BuildContext context}) {
     return BlocSelector<CartBloc, CartState, bool>(
       selector: (state) {
         return state.hasDiscount;
@@ -193,11 +171,28 @@ class CartPage extends StatelessWidget {
           key: promoCodeFormKey,
           child: state
               ? Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Icon(Icons.check, color: Colors.green),
-                    Text(
-                      'Promocode applied',
-                      style: context.textStyles.bodyMedium,
+                    Row(
+                      children: [
+                        Icon(Icons.check, color: Colors.green),
+                        Text(
+                          'Promocode applied',
+                          style: context.textStyles.bodyMedium,
+                        ),
+                      ],
+                    ),
+                    InkWell(
+                      onTap: () {
+                        context.read<CartBloc>().add(ResetPromoCodeEvent());
+                        promocodeTextField.clear();
+                        SnackService.show("Promo Code Reset");
+                      },
+                      child: Text(
+                        'Reset',
+                        style: context.textStyles.bodyMedium,
+                      ),
                     ),
                   ],
                 )
@@ -210,7 +205,6 @@ class CartPage extends StatelessWidget {
                         fieldType: TextFormFieldType.name,
                         textInputType: TextInputType.text,
                         controller: promocodeTextField,
-
                         hintText: 'Enter your promocode',
                         validator: (value) {
                           if (value == null || value.isEmpty) {
@@ -238,6 +232,7 @@ class CartPage extends StatelessWidget {
                                 promoCode: promocodeTextField.text,
                               ),
                             );
+                            SnackService.show("Promo Code Applied 🎉");
                           }
                         },
                         height: 50.h(context),

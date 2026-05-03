@@ -4,6 +4,8 @@ import 'package:evo_project/core/router/route_names.dart';
 import 'package:evo_project/core/shared/widgets/header.dart';
 import 'package:evo_project/core/shared/widgets/loading_indecator.dart';
 import 'package:evo_project/core/shared/widgets/product_card.dart';
+import 'package:evo_project/features/cart/Presentation/cartBloc/cart_bloc.dart';
+import 'package:evo_project/features/cart/Presentation/cartBloc/cart_state.dart';
 import 'package:evo_project/features/home/presentation/bloc/home_bloc.dart';
 import 'package:evo_project/features/home/presentation/bloc/home_event.dart';
 import 'package:evo_project/features/home/presentation/bloc/states/category_products_state.dart';
@@ -78,12 +80,17 @@ class _ProductsPageState extends State<ProductsPage> {
         bottom: false,
         child: Column(
           children: [
-            HeaderWidget(
-              firstWidget: FirstWidget.back,
-              midWidget: MidWidget.text,
-              lastWidget: LastWidget.cart,
-              text: widget.pageTitle ?? 'Products',
+            BlocSelector<CartBloc, CartState, int>(
+              selector: (state) => state.cartProducts.length,
+              builder: (BuildContext context, cartProducts) => HeaderWidget(
+                firstWidget: FirstWidget.back,
+                midWidget: MidWidget.text,
+                lastWidget: LastWidget.cart,
+                text: widget.pageTitle ?? 'Products',
+                cartProducts: cartProducts,
+              ),
             ),
+
             const SizedBox(height: 20),
             Expanded(
               child: Padding(

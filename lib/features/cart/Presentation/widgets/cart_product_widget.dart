@@ -2,6 +2,8 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:evo_project/core/extensions/extensions.dart';
 import 'package:evo_project/core/helpers/currency_symbols.dart';
 import 'package:evo_project/core/router/route_names.dart';
+import 'package:evo_project/core/shared/widgets/global_button.dart';
+import 'package:evo_project/core/theme/text_styles.dart';
 import 'package:evo_project/features/cart/Domain/entites/cart_item.dart';
 import 'package:evo_project/features/cart/Presentation/cartBloc/cart_bloc.dart';
 import 'package:evo_project/features/cart/Presentation/cartBloc/cart_event.dart';
@@ -130,10 +132,18 @@ class CartProductWidget extends StatelessWidget {
                             ),
                             InkWell(
                               onTap: () => quantity == 1
-                                  ? context.read<CartBloc>().add(
-                                      DeleteProductFromCartEvent(
-                                        productId: cartItem.productId,
-                                      ),
+                                  ? showDialog(
+                                      context: context,
+                                      builder: (context) {
+                                        return Dialog(
+                                          child: StatefulBuilder(
+                                            builder: (context, setState) =>
+                                                _deleteProductPopup(
+                                                  context: context,
+                                                ),
+                                          ),
+                                        );
+                                      },
                                     )
                                   : context.read<CartBloc>().add(
                                       UpdateProductQuantityEvent(
@@ -157,6 +167,52 @@ class CartProductWidget extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _deleteProductPopup({required BuildContext context}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            textAlign: TextAlign.center,
+            'Are You Sure You Want To\n Delete The Product From Cart?',
+            style: TextStyles.headingsH4.copyWith(),
+          ),
+          SizedBox(height: 30.h(context)),
+          Row(
+            children: [
+              Expanded(
+                child: GlobalButton(
+                  text: 'CANCEL',
+                  onTap: () => Navigator.of(context).pop(),
+                  height: 50.h(context),
+                ),
+              ),
+
+              SizedBox(width: 12),
+
+              Expanded(
+                child: GlobalButton(
+                  text: 'SURE',
+                  onTap: () {
+                    context.read<CartBloc>().add(
+                      DeleteProductFromCartEvent(productId: cartItem.productId),
+                    );
+                    Navigator.pop(context);
+                  },
+                  height: 50.h(context),
+                  isFilled: false,
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }

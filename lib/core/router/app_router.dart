@@ -12,6 +12,7 @@ import 'package:evo_project/features/home/Domain/usecases/get_category.dart';
 import 'package:evo_project/features/home/Domain/usecases/get_dashboard.dart';
 import 'package:evo_project/features/home/Domain/usecases/get_product.dart';
 import 'package:evo_project/features/home/Domain/usecases/get_related_products.dart';
+import 'package:evo_project/features/home/Domain/usecases/upload_profile_image.dart';
 import 'package:evo_project/features/home/presentation/bloc/home_bloc.dart';
 import 'package:evo_project/features/home/presentation/bloc/home_event.dart';
 import 'package:evo_project/features/home/presentation/pages/filter_page.dart';
@@ -120,6 +121,7 @@ class AppRouter {
                     getProductUsecase: sl<GetProductUsecase>(),
                     getRelatedProductsUsecase: sl<GetRelatedProducts>(),
                     getDashboardUsecase: sl<GetDashboardUsecase>(),
+                    uploadProfileImageUsecase: sl<UploadProfileImageUsecase>(),
                   )
                   ..add(GetProductEvent(productId: productId))
                   ..add(GetRelatedProductsEvent(productId: productId)),

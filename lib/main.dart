@@ -6,10 +6,19 @@ import 'package:evo_project/core/services/notifications_service.dart';
 import 'package:evo_project/core/services/user_seesion.dart';
 import 'package:evo_project/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+  SystemChrome.setSystemUIOverlayStyle(
+    const SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      systemNavigationBarColor: Colors.transparent,
+      systemNavigationBarDividerColor: Colors.transparent,
+    ),
+  );
   await EnvConfig.init(fileName: ".env.prod");
   await initDI();
   await sl<UserSeesion>().refreshToken();

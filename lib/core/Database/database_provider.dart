@@ -23,7 +23,6 @@ class DatabaseProvider {
         await CartTable.create(db);
         await WishlistTable.create(db);
         await NotificationTable.create(db);
-        print("Database Created 🔥");
       },
       onUpgrade: (db, oldVersion, newVersion) async {
         if (oldVersion < 2) {

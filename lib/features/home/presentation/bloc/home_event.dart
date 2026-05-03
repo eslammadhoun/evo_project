@@ -1,3 +1,5 @@
+import 'dart:io';
+
 abstract class HomeEvent {
   const HomeEvent();
 }
@@ -24,4 +26,9 @@ class GetDashboardEvent extends HomeEvent {}
 class LoadMoreCategoryProductsEvent extends HomeEvent {
   final String categoryId;
   const LoadMoreCategoryProductsEvent({required this.categoryId});
+}
+
+class UploadProfileImageEvent extends HomeEvent {
+  final File imageFile;
+  const UploadProfileImageEvent({required this.imageFile});
 }

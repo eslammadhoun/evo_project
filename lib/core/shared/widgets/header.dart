@@ -15,13 +15,14 @@ class HeaderWidget extends StatelessWidget {
   final MidWidget midWidget;
   final LastWidget lastWidget;
   final String? text;
-
+  final int? cartProducts;
   const HeaderWidget({
     super.key,
     required this.firstWidget,
     required this.midWidget,
     required this.lastWidget,
     this.text,
+    this.cartProducts,
   });
 
   @override
@@ -97,7 +98,7 @@ class HeaderWidget extends StatelessWidget {
                     ),
                     child: Center(
                       child: Text(
-                        '9',
+                        cartProducts.toString(),
                         style: context.textStyles.headlineLarge!.copyWith(
                           fontSize: 10,
                           color: Colors.white,

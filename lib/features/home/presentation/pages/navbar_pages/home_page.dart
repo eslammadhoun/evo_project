@@ -2,9 +2,7 @@ import 'package:evo_project/core/extensions/extensions.dart';
 import 'package:evo_project/core/helpers/media_type_helper.dart';
 import 'package:evo_project/core/router/route_names.dart';
 import 'package:evo_project/core/services/notifications_service.dart';
-import 'package:evo_project/core/shared/widgets/app_drawer.dart';
 import 'package:evo_project/core/shared/widgets/dots_indecator.dart';
-import 'package:evo_project/core/shared/widgets/header.dart';
 import 'package:evo_project/core/shared/widgets/loading_indecator.dart';
 import 'package:evo_project/core/shared/widgets/product_card.dart';
 import 'package:evo_project/features/cart/Presentation/cartBloc/cart_bloc.dart';
@@ -58,9 +56,9 @@ class _HomePageState extends State<HomePage> {
         context.read<CartBloc>().add(GetCartProductsEvent());
         context.read<CartBloc>().add(GetCartDiscountEvent());
         context.read<HomeBloc>().add(GetDashboardEvent());
-        context.read<HomeBloc>().add(
-          GetRelatedProductsEvent(productId: '99790'),
-        );
+        // context.read<HomeBloc>().add(
+        //   GetRelatedProductsEvent(productId: '99790'),
+        // );
       }
     });
   }
@@ -73,88 +71,79 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      drawer: AppDrawer(),
-      body: SafeArea(
-        child: Stack(
-          children: [
-            Column(
-              children: [
-                HeaderWidget(
-                  firstWidget: FirstWidget.menu,
-                  midWidget: MidWidget.nothing,
-                  lastWidget: LastWidget.cart,
-                ),
-                BlocConsumer<HomeBloc, HomeState>(
-                  listener: (context, state) {
-                    if (state.dashboardState.getDashboardState ==
-                        GetDashboardStates.failure) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            state.dashboardState.getDashboardErrorMessage!,
+    return SafeArea(
+      child: Stack(
+        children: [
+          Column(
+            children: [
+              BlocConsumer<HomeBloc, HomeState>(
+                listener: (context, state) {
+                  if (state.dashboardState.getDashboardState ==
+                      GetDashboardStates.failure) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          state.dashboardState.getDashboardErrorMessage!,
+                        ),
+                      ),
+                    );
+                  }
+                },
+                buildWhen: (prev, curr) =>
+                    prev.dashboardState != curr.dashboardState,
+                builder: (context, state) {
+                  if (state.dashboardState.getDashboardState ==
+                      GetDashboardStates.initial) {
+                    return Center(
+                      child: AppLoadingIndicator(size: 60, strokeWidth: 8),
+                    );
+                  } else if (state.dashboardState.getDashboardState ==
+                      GetDashboardStates.loading) {
+                    return Center(
+                      child: AppLoadingIndicator(size: 60, strokeWidth: 8),
+                    );
+                  } else if (state.dashboardState.getDashboardState ==
+                      GetDashboardStates.failure) {
+                    return SizedBox.shrink();
+                  } else {
+                    return Expanded(
+                      child: CustomScrollView(
+                        slivers: [
+                          SliverFillRemaining(
+                            child: _topHeaderBanners(
+                              context: context,
+                              listOfBanners: state.dashboardState.topBanners!,
+                            ),
                           ),
-                        ),
-                      );
-                    }
-                  },
-                  buildWhen: (prev, curr) =>
-                      prev.dashboardState != curr.dashboardState,
-                  builder: (context, state) {
-                    if (state.dashboardState.getDashboardState ==
-                        GetDashboardStates.initial) {
-                      return Center(
-                        child: AppLoadingIndicator(size: 60, strokeWidth: 8),
-                      );
-                    } else if (state.dashboardState.getDashboardState ==
-                        GetDashboardStates.loading) {
-                      return Center(
-                        child: AppLoadingIndicator(size: 60, strokeWidth: 8),
-                      );
-                    } else if (state.dashboardState.getDashboardState ==
-                        GetDashboardStates.failure) {
-                      return SizedBox.shrink();
-                    } else {
-                      return Expanded(
-                        child: CustomScrollView(
-                          slivers: [
-                            SliverFillRemaining(
-                              child: _topHeaderBanners(
+                          ...List.generate(
+                            state.dashboardState.footerBanners!.length,
+                            (index) => SliverFillRemaining(
+                              child: _bannerWidget(
                                 context: context,
-                                listOfBanners: state.dashboardState.topBanners!,
+                                banner:
+                                    state.dashboardState.footerBanners![index],
                               ),
                             ),
-                            ...List.generate(
-                              state.dashboardState.footerBanners!.length,
-                              (index) => SliverFillRemaining(
-                                child: _bannerWidget(
-                                  context: context,
-                                  banner: state
-                                      .dashboardState
-                                      .footerBanners![index],
-                                ),
-                              ),
-                            ),
+                          ),
 
-                            SliverToBoxAdapter(
-                              child: _featuredProducts(context: context),
-                            ),
-                          ],
-                        ),
-                      );
-                    }
-                  },
-                ),
-              ],
-            ),
+                          SliverToBoxAdapter(
+                            child: _featuredProducts(context: context),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+                },
+              ),
+            ],
+          ),
 
-            Positioned(
-              top: kToolbarHeight + 20,
-              right: 20,
-              child: SvgPicture.asset('lib/assets/icons/app_logo.svg'),
-            ),
-          ],
-        ),
+          Positioned(
+            top: kToolbarHeight + 20,
+            right: 20,
+            child: SvgPicture.asset('lib/assets/icons/app_logo.svg'),
+          ),
+        ],
       ),
     );
   }

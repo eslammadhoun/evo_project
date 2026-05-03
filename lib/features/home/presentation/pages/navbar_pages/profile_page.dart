@@ -1,20 +1,25 @@
+import 'dart:io';
 import 'package:evo_project/core/constants/spacing.dart';
 import 'package:evo_project/core/extensions/extensions.dart';
 import 'package:evo_project/core/logger/app_logger.dart';
 import 'package:evo_project/core/router/route_paths.dart';
-import 'package:evo_project/core/shared/widgets/app_drawer.dart';
 import 'package:evo_project/core/shared/widgets/global_button.dart';
-import 'package:evo_project/core/shared/widgets/header.dart';
 import 'package:evo_project/core/shared/widgets/loading_indecator.dart';
 import 'package:evo_project/core/theme/text_styles.dart';
 import 'package:evo_project/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:evo_project/features/auth/presentation/bloc/auth_event.dart';
 import 'package:evo_project/features/auth/presentation/bloc/auth_state.dart';
+import 'package:evo_project/features/cart/Presentation/cartBloc/cart_bloc.dart';
+import 'package:evo_project/features/cart/Presentation/cartBloc/cart_event.dart';
+import 'package:evo_project/features/home/presentation/bloc/home_bloc.dart';
+import 'package:evo_project/features/home/presentation/bloc/home_event.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
+
+import '../../bloc/states/home_state.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -25,90 +30,74 @@ class ProfilePage extends StatefulWidget {
 
 class _ProfilePageState extends State<ProfilePage> {
   bool isEditing = false;
+
   Future<void> _pickAndUploadImage() async {
     final picker = ImagePicker();
 
     final pickedFile = await picker.pickImage(
       source: ImageSource.gallery,
       imageQuality: 70,
+      requestFullMetadata: false,
     );
 
     if (pickedFile == null) return;
 
-    final filePath = pickedFile.path;
+    final File file = File(pickedFile.path);
 
-    // context.read<UploadBloc>().add(UploadImageEvent(filePath));
+    if (mounted) {
+      context.read<HomeBloc>().add(UploadProfileImageEvent(imageFile: file));
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      drawer: AppDrawer(),
-      body: SafeArea(
-        child: Column(
-          children: [
-            HeaderWidget(
-              firstWidget: FirstWidget.menu,
-              midWidget: MidWidget.text,
-              lastWidget: LastWidget.cart,
-              text: 'My Profile',
+    return SafeArea(
+      child: ListView(
+        padding: const EdgeInsets.only(top: 20),
+        children: [
+          _profileAcount(context: context),
+          const SizedBox(height: 30),
+          _profileWidget(
+            context: context,
+            title: 'My Orders',
+            iconName: 'orders_icon',
+            onTap: () => StatefulNavigationShell.of(context).goBranch(2),
+          ),
+          _profileWidget(
+            context: context,
+            title: 'Payment method',
+            iconName: 'credit-card',
+            onTap: () => StatefulNavigationShell.of(context).goBranch(0),
+          ),
+          _profileWidget(
+            context: context,
+            title: 'Delivery address',
+            iconName: 'map-pin',
+            onTap: () => StatefulNavigationShell.of(context).goBranch(0),
+          ),
+          _profileWidget(
+            context: context,
+            title: 'Promocodes & gift cards',
+            iconName: 'gift2',
+            onTap: () => StatefulNavigationShell.of(context).goBranch(0),
+          ),
+          _profileWidget(
+            context: context,
+            title: 'Sign out',
+            iconName: 'log-out',
+            onTap: () => showDialog(
+              context: context,
+              builder: (context) {
+                return Dialog(
+                  child: StatefulBuilder(
+                    builder: (context, setState) =>
+                        _signOutPubup(context: context),
+                  ),
+                );
+              },
             ),
-
-            Expanded(
-              child: ListView(
-                padding: const EdgeInsets.only(top: 20),
-                children: [
-                  _profileAcount(context: context),
-                  const SizedBox(height: 30),
-                  _profileWidget(
-                    context: context,
-                    title: 'My Orders',
-                    iconName: 'orders_icon',
-                    onTap: () =>
-                        StatefulNavigationShell.of(context).goBranch(2),
-                  ),
-                  _profileWidget(
-                    context: context,
-                    title: 'Payment method',
-                    iconName: 'credit-card',
-                    onTap: () =>
-                        StatefulNavigationShell.of(context).goBranch(0),
-                  ),
-                  _profileWidget(
-                    context: context,
-                    title: 'Delivery address',
-                    iconName: 'map-pin',
-                    onTap: () =>
-                        StatefulNavigationShell.of(context).goBranch(0),
-                  ),
-                  _profileWidget(
-                    context: context,
-                    title: 'Promocodes & gift cards',
-                    iconName: 'gift',
-                    onTap: () =>
-                        StatefulNavigationShell.of(context).goBranch(0),
-                  ),
-                  _profileWidget(
-                    context: context,
-                    title: 'Sign out',
-                    iconName: 'log-out',
-                    onTap: () => showDialog(
-                      context: context,
-                      builder: (context) {
-                        return Dialog(
-                          child: StatefulBuilder(
-                            builder: (context, setState) =>
-                                _signOutPubup(context: context),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -131,9 +120,13 @@ class _ProfilePageState extends State<ProfilePage> {
               child: Stack(
                 children: [
                   Positioned.fill(
-                    child: Image.asset(
-                      'lib/assets/images/image.png',
-                      fit: BoxFit.cover,
+                    child: BlocConsumer<HomeBloc, HomeState>(
+                      builder: (BuildContext context, state) {
+                        return state.profileImageState.profileImage != null
+                            ? Image.file(state.profileImageState.profileImage!, fit: BoxFit.cover,)
+                            : SizedBox();
+                      },
+                      listener: (BuildContext context, state) {},
                     ),
                   ),
                   isEditing
@@ -308,6 +301,7 @@ class _ProfilePageState extends State<ProfilePage> {
                       text: 'SURE',
                       onTap: () {
                         context.read<AuthBloc>().add(LogoutEvent());
+                        context.read<CartBloc>().add(ResetPromoCodeEvent());
                       },
                       height: 50.h(context),
                       isFilled: false,

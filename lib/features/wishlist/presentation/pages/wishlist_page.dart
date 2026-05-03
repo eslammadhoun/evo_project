@@ -1,13 +1,13 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:evo_project/core/extensions/extensions.dart';
 import 'package:evo_project/core/helpers/currency_symbols.dart';
-import 'package:evo_project/core/logger/app_logger.dart';
 import 'package:evo_project/core/router/route_names.dart';
-import 'package:evo_project/core/shared/widgets/app_drawer.dart';
 import 'package:evo_project/core/shared/widgets/global_button.dart';
-import 'package:evo_project/core/shared/widgets/header.dart';
 import 'package:evo_project/core/shared/widgets/loading_indecator.dart';
 import 'package:evo_project/core/theme/app_typography.dart';
+import 'package:evo_project/features/cart/Domain/entites/cart_item.dart';
+import 'package:evo_project/features/cart/Presentation/cartBloc/cart_bloc.dart';
+import 'package:evo_project/features/cart/Presentation/cartBloc/cart_event.dart';
 import 'package:evo_project/features/wishlist/Domain/Entites/wishlist_item.dart';
 import 'package:evo_project/features/wishlist/presentation/bloc/wishlist_bloc.dart';
 import 'package:evo_project/features/wishlist/presentation/bloc/wishlist_event.dart';
@@ -40,72 +40,55 @@ class _WishlistPageState extends State<WishlistPage> {
       (bloc) => bloc.state.wishlist,
     );
 
-    return Scaffold(
-      drawer: AppDrawer(),
-      body: SafeArea(
-        child: BlocConsumer<WishlistBloc, WishlistState>(
-          builder: (BuildContext context, state) {
-            if (state.getWishlistState == GetWishlistState.loading ||
-                state.getWishlistState == GetWishlistState.initial) {
-              return Center(
-                child: AppLoadingIndicator(size: 60, strokeWidth: 8),
-              );
-            }
-            if (state.getWishlistState == GetWishlistState.success) {
-              if (wishlist.isEmpty) {
-                return Align(
-                  alignment: Alignment.bottomCenter,
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-                    child: GlobalButton(
-                      text: 'SHOP NOW',
-                      onTap: () =>
-                          StatefulNavigationShell.of(context).goBranch(0),
-                      height: 50.h(context),
-                      isFilled: true,
-                    ),
+    return SafeArea(
+      child: BlocConsumer<WishlistBloc, WishlistState>(
+        builder: (BuildContext context, state) {
+          if (state.getWishlistState == GetWishlistState.loading ||
+              state.getWishlistState == GetWishlistState.initial) {
+            return Center(child: AppLoadingIndicator(size: 60, strokeWidth: 8));
+          }
+          if (state.getWishlistState == GetWishlistState.success) {
+            if (wishlist.isEmpty) {
+              return Align(
+                alignment: Alignment.bottomCenter,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                  child: GlobalButton(
+                    text: 'SHOP NOW',
+                    onTap: () =>
+                        StatefulNavigationShell.of(context).goBranch(0),
+                    height: 50.h(context),
+                    isFilled: true,
                   ),
-                );
-              } else {
-                return Column(
-                  children: [
-                    HeaderWidget(
-                      firstWidget: FirstWidget.menu,
-                      midWidget: MidWidget.text,
-                      lastWidget: LastWidget.cart,
-                      text: 'Wishlist',
-                    ),
-                    Expanded(
-                      child: ListView.separated(
-                        padding: const EdgeInsets.only(top: 20, left: 20),
-                        itemBuilder: (context, index) => _wishItemWidget(
-                          context: context,
-                          wishlistItem: wishlist[index],
-                        ),
-                        separatorBuilder: (context, index) =>
-                            const SizedBox(height: 15),
-                        itemCount: wishlist.length,
-                      ),
-                    ),
-                  ],
-                );
-              }
-            } else {
-              return Center(
-                child: Text(
-                  'Error While Fetching Wishlist, Please Try Again Later, ${state.errorMessage!}',
                 ),
               );
+            } else {
+              return ListView.separated(
+                padding: const EdgeInsets.only(top: 20, left: 20),
+                itemBuilder: (context, index) => _wishItemWidget(
+                  context: context,
+                  wishlistItem: wishlist[index],
+                ),
+                separatorBuilder: (context, index) =>
+                    const SizedBox(height: 15),
+                itemCount: wishlist.length,
+              );
             }
-          },
-          listener: (BuildContext context, state) {
-            if (state.getWishlistState == GetWishlistState.failure) {
-              ScaffoldMessenger.of(
-                context,
-              ).showSnackBar(SnackBar(content: Text(state.errorMessage!)));
-            }
-          },
-        ),
+          } else {
+            return Center(
+              child: Text(
+                'Error While Fetching Wishlist, Please Try Again Later, ${state.errorMessage!}',
+              ),
+            );
+          }
+        },
+        listener: (BuildContext context, state) {
+          if (state.getWishlistState == GetWishlistState.failure) {
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text(state.errorMessage!)));
+          }
+        },
       ),
     );
   }
@@ -170,7 +153,6 @@ class _WishlistPageState extends State<WishlistPage> {
                             ),
                           ),
 
-                          // ❤️ القلب
                           Padding(
                             padding: const EdgeInsets.only(right: 0),
                             child: _iconButton(
@@ -212,7 +194,18 @@ class _WishlistPageState extends State<WishlistPage> {
                               child: _iconButton(
                                 icon: 'lib/assets/icons/plus.svg',
                                 color: context.colors.primary,
-                                onTap: () => AppLogger.info('Adding'),
+                                onTap: () => context.read<CartBloc>().add(
+                                  AddProductToCartEvent(
+                                    cartItem: CartItem(
+                                      productId: wishlistItem.productId,
+                                      name: wishlistItem.name,
+                                      price: wishlistItem.price,
+                                      quantity: 1,
+                                      image: wishlistItem.image,
+                                      size: 'L',
+                                    ),
+                                  ),
+                                ),
                               ),
                             ),
                           ],

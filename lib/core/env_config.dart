@@ -6,5 +6,5 @@ class EnvConfig {
   }
 
   static String get baseUrl => dotenv.env['BASE_URL'] ?? "";
-  static String get apiKey => dotenv.env['API_KEY'] ?? "";
+  static String get imageApiKey => dotenv.env['IMAGE_API_KEY'] ?? "";
 }

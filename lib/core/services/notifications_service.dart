@@ -42,12 +42,11 @@ class NotificationsService {
     String? title,
     String? body,
   }) async {
-    print('Notification');
     await notifications.show(
       id: id,
       title: title,
       body: body,
-      notificationDetails: const NotificationDetails(),
+      notificationDetails: notificationDetails,
     );
   }
 }

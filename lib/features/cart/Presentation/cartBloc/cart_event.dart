@@ -30,6 +30,10 @@ class ApplyPromoCodeEvent extends CartEvent {
   const ApplyPromoCodeEvent({required this.promoCode});
 }
 
+class ResetPromoCodeEvent extends CartEvent {
+  const ResetPromoCodeEvent();
+}
+
 class GetCartDiscountEvent extends CartEvent {}
 
 class SetCartDiscountEvent extends CartEvent {

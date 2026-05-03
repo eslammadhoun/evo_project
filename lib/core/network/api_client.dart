@@ -266,7 +266,7 @@ class ApiClient implements ApiConsumer {
             throw ServerFailure("conflict");
 
           case StatusCode.internalServerError:
-            throw ServerFailure("internal server error");
+            throw ServerFailure("Service Unavilabe, please try agnain later");
 
           case 503:
             throw ServerFailure("Service Unavailable Server Down");

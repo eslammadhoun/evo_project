@@ -1,3 +1,5 @@
+import 'package:dartz/dartz.dart';
+import 'package:evo_project/core/errors/failures.dart';
 import 'package:evo_project/core/helpers/bloc_request_handler.dart';
 import 'package:evo_project/features/home/Domain/entities/dashboard_entity.dart';
 import 'package:evo_project/features/home/Domain/entities/paginated_products.dart';
@@ -6,12 +8,14 @@ import 'package:evo_project/features/home/Domain/usecases/get_dashboard.dart';
 import 'package:evo_project/features/home/Domain/usecases/get_product.dart';
 import 'package:evo_project/features/home/Domain/usecases/get_category.dart';
 import 'package:evo_project/features/home/Domain/usecases/get_related_products.dart';
+import 'package:evo_project/features/home/Domain/usecases/upload_profile_image.dart';
 import 'package:evo_project/features/home/presentation/bloc/home_event.dart';
 import 'package:evo_project/features/home/presentation/bloc/states/category_products_state.dart';
 import 'package:evo_project/features/home/presentation/bloc/states/dashboard_state.dart';
 import 'package:evo_project/features/home/presentation/bloc/states/home_state.dart';
 import 'package:evo_project/features/home/presentation/bloc/states/product_details_state.dart';
 import 'package:evo_project/features/home/presentation/bloc/states/related_products_state.dart';
+import 'package:evo_project/features/home/presentation/bloc/states/upload_profile_image_state.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class HomeBloc extends Bloc<HomeEvent, HomeState> {
@@ -19,17 +23,21 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   final GetProductUsecase getProductUsecase;
   final GetRelatedProducts getRelatedProductsUsecase;
   final GetDashboardUsecase getDashboardUsecase;
+  final UploadProfileImageUsecase uploadProfileImageUsecase;
+
   HomeBloc({
     required this.getProductsUsecase,
     required this.getProductUsecase,
     required this.getRelatedProductsUsecase,
     required this.getDashboardUsecase,
+    required this.uploadProfileImageUsecase,
   }) : super(HomeState.inital()) {
     on<GetCatecoryProductsEvent>(_getCatecoryProducts);
     on<GetProductEvent>(_getProductDetails);
     on<GetRelatedProductsEvent>(_onGetRelatedProducts);
     on<GetDashboardEvent>(_onGetDashboard);
     on<LoadMoreCategoryProductsEvent>(_onLoadmoreCategoryProducts);
+    on<UploadProfileImageEvent>(_uploadProfileImage);
   }
 
   Future<void> _getCatecoryProducts(
@@ -199,6 +207,32 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
             ],
             hasMore: success.hasMore,
             page: nextPage,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _uploadProfileImage(
+    UploadProfileImageEvent event,
+    Emitter<HomeState> emit,
+  ) async {
+    final Either<Failure, void> uploadImageResult =
+        await uploadProfileImageUsecase(imageFile: event.imageFile);
+    uploadImageResult.fold(
+      (failure) => emit(
+        state.copyWith(
+          profileImageState: ProfileImageState(
+            uploadProfileImageState: UploadProfileImageState.failure,
+            errorMessage: failure.message,
+          ),
+        ),
+      ),
+      (success) => emit(
+        state.copyWith(
+          profileImageState: ProfileImageState(
+            uploadProfileImageState: UploadProfileImageState.success,
+            profileImage: event.imageFile
           ),
         ),
       ),
