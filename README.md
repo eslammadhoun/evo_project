@@ -1,6 +1,6 @@
 # 🛍️ Nectar EVO (Flutter E-Commerce App)
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/e39992a8-a58a-4e77-819b-39b559d5cbcb" alt="Nectar EVO Banner"/>
+  <img src="https://github.com/user-attachments/assets/ff8b30fb-74b7-4ecc-8988-fdb6799177af" alt="Nectar EVO Banner" />
 </p>
 
 <p align="center">
