@@ -1,5 +1,14 @@
 # 🛍️ Nectar EVO (Flutter E-Commerce App)
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/e39992a8-a58a-4e77-819b-39b559d5cbcb" alt="Nectar EVO Banner"/>
+</p>
 
+<p align="center">
+  <img src="https://img.shields.io/badge/Flutter-3.x-blue?logo=flutter"/>
+  <img src="https://img.shields.io/badge/Architecture-Clean%20Architecture-green"/>
+  <img src="https://img.shields.io/badge/State%20Management-BLoC-orange"/>
+  <img src="https://img.shields.io/badge/Platform-Android%20%7C%20iOS-black"/>
+</p>
 A production-oriented Flutter e-commerce application built with a feature-first, Clean Architecture-inspired codebase.  
 The project emphasizes maintainable architecture, scalable state management, secure session handling, and reusable UI systems.
 
@@ -159,21 +168,83 @@ Current offline behavior is partial:
 
 ## 📸 Screenshots
 
-Add actual screenshots/GIFs here before publishing.
+### 🚀 Splash & Onboarding
 
-- Splash / Onboarding
-- <img width="828" height="1792" alt="IMG_0815" src="https://github.com/user-attachments/assets/28c894a5-6f68-4dda-8c68-bb2287f3a5b0" />
-
-- Sign In / Sign Up
-- Home Dashboard
-- Product Listing
-- Product Details
-- Cart & Checkout
-- Wishlist
-- Notifications
-- Profile
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/28c894a5-6f68-4dda-8c68-bb2287f3a5b0" width="200"/>
+  <img src="https://github.com/user-attachments/assets/e56b99a5-8ff8-4f7b-9955-f4c7f18897a6" width="200"/>
+  <img src="https://github.com/user-attachments/assets/4543d397-6172-416b-a473-42f296415c98" width="200"/>
+  <img src="https://github.com/user-attachments/assets/950e02ef-edd8-47a2-8c6f-e523a5ef4921" width="200"/>
+</p>
 
 ---
+
+### 🔐 Authentication
+
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/bea3d258-bbea-4aa0-9e4e-8edc44fb0957" width="220"/>
+  <img src="https://github.com/user-attachments/assets/6b21fb18-324f-4481-bb29-7d4a46ae5f41" width="220"/>
+</p>
+
+---
+
+### 🏠 Home Dashboard
+
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/8f8901dc-01b1-4ce1-827c-ccba2016f9c3" width="220"/>
+  <img src="https://github.com/user-attachments/assets/e60ccc86-5042-4e89-92bc-22dbc74b9aef" width="220"/>
+</p>
+
+---
+
+### 🛍️ Product Listing
+
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/a6ecc5f1-2c46-4c12-a964-0246bf59437e" width="220"/>
+</p>
+
+---
+
+### 📦 Product Details
+
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/ba9509ad-af47-4792-8c43-d2cf2cd8420e" width="220"/>
+  <img src="https://github.com/user-attachments/assets/0f342297-6fef-4594-9d60-b5273d4473be" width="220"/>
+</p>
+
+---
+
+### 🛒 Cart & Checkout
+
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/b706e773-ee76-45e4-84b9-20c4598fb00e" width="220"/>
+  <img src="https://github.com/user-attachments/assets/1b6ff0c2-bd91-4635-a047-6e7d0bbeb062" width="220"/>
+  <img src="https://github.com/user-attachments/assets/514234da-6950-48f9-9f87-02391b5578ec" width="220"/>
+</p>
+
+---
+
+### ❤️ Wishlist
+
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/d60a1773-1410-4ce7-8f89-9c9973b8480b" width="220"/>
+</p>
+
+---
+
+### 🔔 Notifications
+
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/c0c36b51-616a-46a6-837f-a9461ee3ab30" width="220"/>
+</p>
+
+---
+
+### 👤 Profile
+
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/496545b1-938a-4506-82a5-caea48246156" width="220"/>
+</p>
 
 ## ⚙️ Installation
 
