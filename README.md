@@ -115,8 +115,6 @@ State management is implemented with `flutter_bloc`:
 - iOS ATS pinned domain configuration
 - 401 handling via global auth event stream and forced sign-out redirect
 
-> Note: The project currently ships `.env.prod` as an asset; sensitive keys should be moved to a safer strategy (server-side proxy/runtime secure config).
-
 ---
 
 ## 🌐 API and Data Layer
@@ -161,9 +159,7 @@ Current offline behavior is partial:
 
 ## 🧪 Testing Status
 
-- Testing scaffolding exists, but automated coverage is currently minimal
-- Recommended next step: unit tests for use-cases/repositories + bloc tests + golden tests for shared widgets
-
+- Testing scaffolding exists, but automated coverage is currently minimag
 ---
 
 ## 📸 Screenshots
@@ -255,7 +251,7 @@ Current offline behavior is partial:
 
 ### Setup
 ```bash
-git clone <your-repo-url>
+git clone <https://github.com/eslammadhoun/evo_project>
 cd evo_project
 flutter pub get
 ```
@@ -289,17 +285,6 @@ flutter build ios --release
 
 ---
 
-## 🔥 Firebase Setup
-
-Firebase is not currently integrated in this codebase.
-
-If added in the future:
-- Add `firebase_core` and required packages
-- Configure `google-services.json` and `GoogleService-Info.plist`
-- Initialize Firebase in `main.dart`
-
----
-
 ## 🧱 Engineering Decisions and Trade-offs
 
 ### What was done well
@@ -308,13 +293,6 @@ If added in the future:
 - Strong local persistence integration for commerce-critical local flows
 - Centralized DI and network layers
 - Reusable UI component system
-
-### Known trade-offs / current limitations
-- Some layer boundary leaks (domain/presentation touching data-layer types)
-- Inconsistent naming/casing across old/new folders
-- Partial offline support (not yet offline-first)
-- API response envelope parsing can be hardened for consistency
-- Secrets handling strategy needs production hardening
 
 ---
 
@@ -337,17 +315,6 @@ This architecture is ready to scale with:
 
 ---
 
-## 🛣️ Future Improvements
-
-- Add comprehensive automated testing strategy (unit/bloc/widget/golden)
-- Introduce route guards via declarative `go_router` redirects
-- Implement robust token refresh-and-retry queue in interceptors
-- Harden secrets management (remove sensitive runtime values from bundled assets)
-- Improve offline-first behavior with cache fallbacks and sync queues
-- Normalize naming conventions and remove cross-layer coupling hotspots
-
----
-
 ## 💼 Why This Project Is Technically Strong
 
 - It demonstrates practical, production-relevant architecture decisions
@@ -356,7 +323,3 @@ This architecture is ready to scale with:
 - It shows real-world Flutter competency: DI, routing, BLoC orchestration, local DB, networking, error modeling, and reusable UI systems
 
 ---
-
-## 📄 License
-
-Add your preferred license (`MIT`, `Apache-2.0`, etc.).
