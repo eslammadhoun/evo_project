@@ -162,6 +162,8 @@ Current offline behavior is partial:
 Add actual screenshots/GIFs here before publishing.
 
 - Splash / Onboarding
+- <img width="828" height="1792" alt="IMG_0815" src="https://github.com/user-attachments/assets/28c894a5-6f68-4dda-8c68-bb2287f3a5b0" />
+
 - Sign In / Sign Up
 - Home Dashboard
 - Product Listing
