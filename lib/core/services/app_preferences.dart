@@ -1,10 +1,16 @@
 import 'package:evo_project/core/constants/app_constants.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AppPreferences {
   final SharedPreferences _prefs;
+  final FlutterSecureStorage _secureStorage;
 
-  AppPreferences(this._prefs);
+  // In-memory token cache — keeps getToken() synchronous so that
+  // AppInterceptors.onRequest() can read the token without going async.
+  String? _cachedToken;
+
+  AppPreferences(this._prefs, this._secureStorage);
 
   // Keys
   static const String keyOnboardingCompleted = 'onboarding_completed';
@@ -30,12 +36,41 @@ class AppPreferences {
 
   Future<bool> clear() => _prefs.clear();
 
-  // --- Specific Methods ---
+  // --- Auth Token (Encrypted Secure Storage + In-Memory Cache) ---
 
-  // Auth Token
-  String? getToken() => _prefs.getString(AppConstants.authTokenKey);
-  Future<bool> setToken(String token) =>
-      _prefs.setString(AppConstants.authTokenKey, token);
+  /// Must be called once during app startup (before any network call).
+  ///
+  /// Reads the token from secure storage into [_cachedToken].
+  /// Also migrates any token that was previously stored in plaintext
+  /// SharedPreferences — so existing users are not logged out on upgrade.
+  Future<void> loadToken() async {
+    String? token = await _secureStorage.read(key: AppConstants.authTokenKey);
+
+    // One-time migration: move legacy plaintext token to secure storage.
+    if (token == null || token.isEmpty) {
+      final legacyToken = _prefs.getString(AppConstants.authTokenKey);
+      if (legacyToken != null && legacyToken.isNotEmpty) {
+        await _secureStorage.write(
+          key: AppConstants.authTokenKey,
+          value: legacyToken,
+        );
+        await _prefs.remove(AppConstants.authTokenKey);
+        token = legacyToken;
+      }
+    }
+
+    _cachedToken = token;
+  }
+
+  /// Synchronous read from in-memory cache.
+  /// Safe to call inside Dio interceptors (which cannot be async).
+  String? getToken() => _cachedToken;
+
+  /// Persists the token in secure storage and updates the in-memory cache.
+  Future<void> setToken(String token) async {
+    _cachedToken = token;
+    await _secureStorage.write(key: AppConstants.authTokenKey, value: token);
+  }
 
   // Onboarding
   bool isOnboardingCompleted() =>
@@ -64,12 +99,13 @@ class AppPreferences {
   Future<bool> setDiscount(double discount) =>
       setValue(keyCartDiscount, discount);
 
-  // Logout
+  // Logout — clears the in-memory cache and wipes token from secure storage.
   Future<void> logout() async {
-    await remove(AppConstants.authTokenKey);
+    _cachedToken = null;
+    await _secureStorage.delete(key: AppConstants.authTokenKey);
     await remove(keyIsAuthenticated);
     await remove(keyUserName);
     await remove(keyUserEmail);
-    // Note: We typically don't clear onboarding status on logout
+    // Note: We typically don't clear onboarding status on logout.
   }
 }

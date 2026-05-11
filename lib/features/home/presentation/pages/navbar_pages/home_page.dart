@@ -1,20 +1,24 @@
+import 'package:evo_project/core/constants/app_assets.dart';
+import 'package:evo_project/core/services/snack_service.dart';
+import 'package:evo_project/core/theme/app_colors.dart';
 import 'package:evo_project/core/extensions/extensions.dart';
 import 'package:evo_project/core/helpers/media_type_helper.dart';
 import 'package:evo_project/core/router/route_names.dart';
 import 'package:evo_project/core/services/notifications_service.dart';
-import 'package:evo_project/core/shared/widgets/dots_indecator.dart';
-import 'package:evo_project/core/shared/widgets/loading_indecator.dart';
+import 'package:evo_project/core/shared/widgets/dots_indicator.dart';
+import 'package:evo_project/core/shared/widgets/loading_indicator.dart';
 import 'package:evo_project/core/shared/widgets/product_card.dart';
-import 'package:evo_project/features/cart/Presentation/cartBloc/cart_bloc.dart';
-import 'package:evo_project/features/cart/Presentation/cartBloc/cart_event.dart';
-import 'package:evo_project/features/home/Domain/entities/dashboard_entity.dart';
-import 'package:evo_project/features/home/presentation/bloc/home_bloc.dart';
-import 'package:evo_project/features/home/presentation/bloc/home_event.dart';
-import 'package:evo_project/features/home/presentation/bloc/states/dashboard_state.dart';
-import 'package:evo_project/features/home/presentation/bloc/states/home_state.dart';
-import 'package:evo_project/features/home/presentation/bloc/states/related_products_state.dart';
-import 'package:evo_project/features/notifications/Data/models/notification_model.dart';
-import 'package:evo_project/features/notifications/Domain/entites/notification.dart';
+import 'package:evo_project/features/cart/presentation/cartBloc/cart_bloc.dart';
+import 'package:evo_project/features/cart/presentation/cartBloc/cart_event.dart';
+import 'package:evo_project/features/home/domain/entities/dashboard_entity.dart';
+import 'package:evo_project/features/home/presentation/bloc/dashboard/dashboard_bloc.dart';
+import 'package:evo_project/features/home/presentation/bloc/dashboard/dashboard_event.dart';
+import 'package:evo_project/features/home/presentation/bloc/dashboard/dashboard_state.dart';
+import 'package:evo_project/features/home/presentation/bloc/category/category_bloc.dart';
+import 'package:evo_project/features/home/presentation/bloc/category/category_event.dart';
+import 'package:evo_project/features/home/presentation/bloc/category/category_state.dart';
+import 'package:evo_project/features/notifications/data/models/notification_model.dart';
+import 'package:evo_project/features/notifications/domain/entities/notification.dart';
 import 'package:evo_project/features/notifications/presentation/bloc/notifications_bloc.dart';
 import 'package:evo_project/features/notifications/presentation/bloc/notifications_event.dart';
 import 'package:flutter/material.dart';
@@ -31,34 +35,38 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   ValueNotifier<int> pageIndex = ValueNotifier(0);
+  static bool _hasShownWelcomeNotification = false;
 
   @override
   void initState() {
     super.initState();
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      await NotificationsService.showNotification(
-        title: 'Welcome back!',
-        body: 'Enjoy the shopping expireince',
-      );
+      if (!_hasShownWelcomeNotification) {
+        _hasShownWelcomeNotification = true;
+        await NotificationsService.showNotification(
+          title: 'Welcome back!',
+          body: 'Enjoy the shopping experience',
+        );
+      }
       if (mounted) {
         context.read<NotificationsBloc>().add(
           InsertNotificationEvent(
             notificationEntity: NotificationEntity(
               notificationId: '0',
               title: 'Welcome back!',
-              body: 'Enjoy the shopping expireince',
+              body: 'Enjoy the shopping experience',
               notificationType: NotificationType.success,
               dateTime: DateTime.now(),
             ),
           ),
         );
+        context.read<DashboardBloc>().add(GetDashboardEvent());
+        context.read<CategoryBloc>().add(
+          const GetCategoryProductsEvent(categoryId: '1'),
+        );
         context.read<CartBloc>().add(GetCartProductsEvent());
         context.read<CartBloc>().add(GetCartDiscountEvent());
-        context.read<HomeBloc>().add(GetDashboardEvent());
-        // context.read<HomeBloc>().add(
-        //   GetRelatedProductsEvent(productId: '99790'),
-        // );
       }
     });
   }
@@ -76,56 +84,48 @@ class _HomePageState extends State<HomePage> {
         children: [
           Column(
             children: [
-              BlocConsumer<HomeBloc, HomeState>(
+              BlocConsumer<DashboardBloc, DashboardState>(
                 listener: (context, state) {
-                  if (state.dashboardState.getDashboardState ==
-                      GetDashboardStates.failure) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          state.dashboardState.getDashboardErrorMessage!,
-                        ),
-                      ),
-                    );
+                  if (state.getDashboardState == GetDashboardStates.failure) {
+                    SnackService.show(state.getDashboardErrorMessage!);
                   }
                 },
-                buildWhen: (prev, curr) =>
-                    prev.dashboardState != curr.dashboardState,
                 builder: (context, state) {
-                  if (state.dashboardState.getDashboardState ==
-                      GetDashboardStates.initial) {
-                    return Center(
-                      child: AppLoadingIndicator(size: 60, strokeWidth: 8),
+                  if (state.getDashboardState == GetDashboardStates.initial ||
+                      state.getDashboardState == GetDashboardStates.loading) {
+                    return const Expanded(
+                      child: Center(
+                        child: AppLoadingIndicator(size: 60, strokeWidth: 8),
+                      ),
                     );
-                  } else if (state.dashboardState.getDashboardState ==
-                      GetDashboardStates.loading) {
-                    return Center(
-                      child: AppLoadingIndicator(size: 60, strokeWidth: 8),
-                    );
-                  } else if (state.dashboardState.getDashboardState ==
+                  } else if (state.getDashboardState ==
                       GetDashboardStates.failure) {
-                    return SizedBox.shrink();
+                    return const SizedBox.shrink();
                   } else {
                     return Expanded(
                       child: CustomScrollView(
                         slivers: [
                           SliverFillRemaining(
-                            child: _topHeaderBanners(
-                              context: context,
-                              listOfBanners: state.dashboardState.topBanners!,
-                            ),
-                          ),
-                          ...List.generate(
-                            state.dashboardState.footerBanners!.length,
-                            (index) => SliverFillRemaining(
-                              child: _bannerWidget(
+                            child: SizedBox(
+                              height: 300.h(context),
+                              child: _topHeaderBanners(
                                 context: context,
-                                banner:
-                                    state.dashboardState.footerBanners![index],
+                                listOfBanners: state.topBanners!,
                               ),
                             ),
                           ),
-
+                          SliverList(
+                            delegate: SliverChildBuilderDelegate(
+                              (context, index) => SizedBox(
+                                height: 200.h(context),
+                                child: _bannerWidget(
+                                  context: context,
+                                  banner: state.footerBanners![index],
+                                ),
+                              ),
+                              childCount: state.footerBanners!.length,
+                            ),
+                          ),
                           SliverToBoxAdapter(
                             child: _featuredProducts(context: context),
                           ),
@@ -137,11 +137,10 @@ class _HomePageState extends State<HomePage> {
               ),
             ],
           ),
-
           Positioned(
-            top: kToolbarHeight + 20,
+            top: 20,
             right: 20,
-            child: SvgPicture.asset('lib/assets/icons/app_logo.svg'),
+            child: SvgPicture.asset(AppAssets.appLogo),
           ),
         ],
       ),
@@ -154,7 +153,7 @@ class _HomePageState extends State<HomePage> {
   }) {
     return Container(
       width: double.infinity,
-      color: Color(0xffECF3FA),
+      color: AppColors.surface,
       child: Stack(
         children: [
           PageView.builder(
@@ -170,16 +169,12 @@ class _HomePageState extends State<HomePage> {
           Positioned(
             left: 20,
             bottom: 20,
-            child: Column(
-              children: [
-                listOfBanners.length > 1
-                    ? DotsIndecator(
-                        valueListenable: pageIndex,
-                        dotsCount: listOfBanners.length,
-                      )
-                    : SizedBox(),
-              ],
-            ),
+            child: listOfBanners.length > 1
+                ? DotsIndicator(
+                    valueListenable: pageIndex,
+                    dotsCount: listOfBanners.length,
+                  )
+                : const SizedBox(),
           ),
         ],
       ),
@@ -193,42 +188,38 @@ class _HomePageState extends State<HomePage> {
     return InkWell(
       onTap: () => context.pushNamed(
         RouteNames.productsPage,
-        extra: {'category_id': banner.categoryId, 'title': banner.categoryId},
+        extra: {'category_id': banner.categoryId, 'page_title': 'Products'},
       ),
       child: Container(
-        decoration: BoxDecoration(
-          border: BoxBorder.fromLTRB(
-            top: BorderSide(color: Color(0xffDBE9F5), width: 4),
-          ),
+        decoration: const BoxDecoration(
+          border: Border(top: BorderSide(color: AppColors.border, width: 4)),
         ),
         child:
             (banner.type == 'full_tall_banner' ||
                 banner.type == 'tall_banner' ||
                 banner.type == 'tall_video')
             ? mediaWidget(banner.images.first.image)
-            : Text('Eslam'),
+            : const Center(child: Text('Promo Banner')),
       ),
     );
   }
 
-  // Featured Products Section
   Widget _featuredProducts({required BuildContext context}) {
-    return BlocBuilder<HomeBloc, HomeState>(
-      buildWhen: (previous, current) =>
-          previous.relatedProductsState != current.relatedProductsState,
+    return BlocBuilder<CategoryBloc, CategoryState>(
       builder: (BuildContext context, state) {
-        if (state.relatedProductsState.getRelatedProductsState ==
-            GetRelatedProductsStates.loading) {
-          return Center(child: AppLoadingIndicator(size: 60, strokeWidth: 8));
-        } else if (state.relatedProductsState.getRelatedProductsState ==
-            GetRelatedProductsStates.failure) {
+        if (state.getCategoryState == GetCategoryStates.loading) {
+          return const Center(
+            child: AppLoadingIndicator(size: 60, strokeWidth: 8),
+          );
+        } else if (state.getCategoryState == GetCategoryStates.failure) {
           return Center(
             child: Text(
-              state.relatedProductsState.getRelatedProductsErrorMessage!,
+              state.getCategoryErrorMessage ??
+                  'Failed to load featured products',
             ),
           );
-        } else if (state.relatedProductsState.getRelatedProductsState ==
-            GetRelatedProductsStates.success) {
+        } else if (state.getCategoryState == GetCategoryStates.success) {
+          if (state.categoryProducts.isEmpty) return const SizedBox.shrink();
           return Column(
             children: [
               Padding(
@@ -251,13 +242,13 @@ class _HomePageState extends State<HomePage> {
                       child: Row(
                         children: [
                           Text(
-                            'view  all',
+                            'view all',
                             style: context.textStyles.bodyMedium!.copyWith(
                               color: context.colors.primary,
                             ),
                           ),
                           const SizedBox(width: 6),
-                          Icon(Icons.arrow_forward_ios),
+                          const Icon(Icons.arrow_forward_ios, size: 16),
                         ],
                       ),
                     ),
@@ -265,36 +256,31 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
               const SizedBox(height: 14),
-              Padding(
-                padding: const EdgeInsets.only(left: 20),
-                child: SingleChildScrollView(
+              SizedBox(
+                height: 255.h(context),
+                child: ListView.builder(
+                  padding: const EdgeInsets.only(left: 20),
                   scrollDirection: Axis.horizontal,
                   physics: const BouncingScrollPhysics(),
-                  child: Row(
-                    children: List.generate(
-                      state.relatedProductsState.relatedProducts!.length,
-                      (index) => Padding(
-                        padding: const EdgeInsets.only(right: 14),
-                        child: SizedBox(
-                          width: 180,
-                          child: RepaintBoundary(
-                            child: ProductCard(
-                              product: state
-                                  .relatedProductsState
-                                  .relatedProducts![index],
-                            ),
-                          ),
+                  itemCount: state.categoryProducts.length,
+                  itemBuilder: (context, index) {
+                    return Padding(
+                      padding: const EdgeInsets.only(right: 14),
+                      child: SizedBox(
+                        width: 180,
+                        child: ProductCard(
+                          product: state.categoryProducts[index],
                         ),
                       ),
-                    ),
-                  ),
+                    );
+                  },
                 ),
               ),
               const SizedBox(height: 50),
             ],
           );
         } else {
-          return Center(child: AppLoadingIndicator(size: 60, strokeWidth: 8));
+          return const SizedBox.shrink();
         }
       },
     );

@@ -1,14 +1,14 @@
-import 'package:evo_project/features/cart/Data/datasources/cart_local_datasource.dart';
+import 'package:evo_project/features/cart/domain/repositories/cart_repository.dart';
 
 class SetCartDiscount {
-  final CartLocalDataSource cartLocalDataSource;
-  const SetCartDiscount({required this.cartLocalDataSource});
+  final CartRepository cartRepository;
+  const SetCartDiscount({required this.cartRepository});
 
   Future<void> call({
     required bool userHaveDiscount,
     required double cartDiscount,
   }) async {
-    return cartLocalDataSource.setCartDiscountState(
+    return cartRepository.setCartDiscountState(
       userHaveDiscount: userHaveDiscount,
       cartDiscount: cartDiscount,
     );

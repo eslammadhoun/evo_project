@@ -1,15 +1,15 @@
 import 'package:evo_project/core/constants/spacing.dart';
 import 'package:evo_project/core/extensions/extensions.dart';
 import 'package:evo_project/core/router/route_names.dart';
+import 'package:evo_project/core/services/snack_service.dart';
 import 'package:evo_project/core/shared/widgets/header.dart';
-import 'package:evo_project/core/shared/widgets/loading_indecator.dart';
+import 'package:evo_project/core/shared/widgets/loading_indicator.dart';
 import 'package:evo_project/core/shared/widgets/product_card.dart';
-import 'package:evo_project/features/cart/Presentation/cartBloc/cart_bloc.dart';
-import 'package:evo_project/features/cart/Presentation/cartBloc/cart_state.dart';
-import 'package:evo_project/features/home/presentation/bloc/home_bloc.dart';
-import 'package:evo_project/features/home/presentation/bloc/home_event.dart';
-import 'package:evo_project/features/home/presentation/bloc/states/category_products_state.dart';
-import 'package:evo_project/features/home/presentation/bloc/states/home_state.dart';
+import 'package:evo_project/features/cart/presentation/cartBloc/cart_bloc.dart';
+import 'package:evo_project/features/cart/presentation/cartBloc/cart_state.dart';
+import 'package:evo_project/features/home/presentation/bloc/category/category_bloc.dart';
+import 'package:evo_project/features/home/presentation/bloc/category/category_event.dart';
+import 'package:evo_project/features/home/presentation/bloc/category/category_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
@@ -31,33 +31,32 @@ class ProductsPage extends StatefulWidget {
 
 class _ProductsPageState extends State<ProductsPage> {
   late ScrollController _scrollController;
-
   bool _isFetching = false;
 
   @override
   void initState() {
     super.initState();
-
     _scrollController = ScrollController();
     _scrollController.addListener(_onScroll);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<HomeBloc>().add(
-        GetCatecoryProductsEvent(categoryId: widget.categoryId ?? '0'),
+      context.read<CategoryBloc>().add(
+        GetCategoryProductsEvent(categoryId: widget.categoryId ?? '0'),
       );
     });
   }
 
   @override
   void dispose() {
+    _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
     super.dispose();
   }
 
   void _onScroll() {
-    if (!_scrollController.hasClients || _isFetching) return;
+    if (!mounted || !_scrollController.hasClients || _isFetching) return;
 
-    final state = context.read<HomeBloc>().state.categoryProductsState;
+    final state = context.read<CategoryBloc>().state;
     final position = _scrollController.position;
 
     if (!state.hasMore) return;
@@ -67,7 +66,7 @@ class _ProductsPageState extends State<ProductsPage> {
         _isFetching = true;
       });
 
-      context.read<HomeBloc>().add(
+      context.read<CategoryBloc>().add(
         LoadMoreCategoryProductsEvent(categoryId: widget.categoryId!),
       );
     }
@@ -90,14 +89,12 @@ class _ProductsPageState extends State<ProductsPage> {
                 cartProducts: cartProducts,
               ),
             ),
-
             const SizedBox(height: 20),
             Expanded(
               child: Padding(
                 padding: Spacing.appPadding,
                 child: Column(
                   children: [
-                    /// 🔹 Top bar
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -153,112 +150,85 @@ class _ProductsPageState extends State<ProductsPage> {
                         ),
                       ],
                     ),
-
                     const SizedBox(height: 14),
-
-                    BlocListener<HomeBloc, HomeState>(
-                      listenWhen: (prev, curr) =>
-                          prev.categoryProductsState.page !=
-                              curr.categoryProductsState.page ||
-                          prev.categoryProductsState.getCategoryState !=
-                              curr.categoryProductsState.getCategoryState,
-                      listener: (context, state) {
-                        final categoryState = state.categoryProductsState;
-
-                        if (categoryState.getCategoryState ==
-                                GetCategoryStates.success ||
-                            categoryState.getCategoryState ==
-                                GetCategoryStates.failure) {
-                          if (mounted) {
-                            setState(() {
-                              _isFetching = false;
-                            });
+                    Expanded(
+                      child: BlocConsumer<CategoryBloc, CategoryState>(
+                        listener: (context, state) {
+                          if (state.getCategoryState ==
+                                  GetCategoryStates.success ||
+                              state.getCategoryState ==
+                                  GetCategoryStates.failure) {
+                            if (mounted) {
+                              setState(() {
+                                _isFetching = false;
+                              });
+                            }
                           }
-                        }
-                        if (categoryState.getCategoryState ==
-                            GetCategoryStates.failure) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                state
-                                    .categoryProductsState
-                                    .getCategoryErrorMessage!,
+                          if (state.getCategoryState ==
+                              GetCategoryStates.failure) {
+                            SnackService.show(state.getCategoryErrorMessage!);
+                          }
+                        },
+                        builder: (context, state) {
+                          if (state.getCategoryState ==
+                                  GetCategoryStates.loading &&
+                              state.categoryProducts.isEmpty) {
+                            return const Center(
+                              child: AppLoadingIndicator(
+                                size: 65,
+                                strokeWidth: 8,
                               ),
-                            ),
-                          );
-                        }
-                      },
-                      child:
-                          BlocSelector<
-                            HomeBloc,
-                            HomeState,
-                            CategoryProductsState
-                          >(
-                            selector: (state) => state.categoryProductsState,
-                            builder: (context, categoryState) {
-                              if (categoryState.getCategoryState ==
-                                  GetCategoryStates.loading) {
-                                return const Expanded(
-                                  child: Center(
-                                    child: AppLoadingIndicator(
-                                      size: 65,
-                                      strokeWidth: 8,
+                            );
+                          }
+
+                          if (state.categoryProducts.isEmpty &&
+                              state.getCategoryState ==
+                                  GetCategoryStates.success) {
+                            return const Center(
+                              child: Text('No products found'),
+                            );
+                          }
+
+                          final list = state.categoryProducts;
+                          return CustomScrollView(
+                            controller: _scrollController,
+                            physics: const BouncingScrollPhysics(),
+                            slivers: [
+                              SliverGrid(
+                                delegate: SliverChildBuilderDelegate((
+                                  context,
+                                  index,
+                                ) {
+                                  return ProductCard(
+                                    key: ValueKey(list[index].productId),
+                                    product: list[index],
+                                  );
+                                }, childCount: list.length),
+                                gridDelegate:
+                                    SliverGridDelegateWithFixedCrossAxisCount(
+                                      crossAxisCount: 2,
+                                      crossAxisSpacing: 15,
+                                      mainAxisSpacing: 15,
+                                      childAspectRatio: 0.58,
+                                      mainAxisExtent: 280.h(context),
+                                    ),
+                              ),
+                              if (_isFetching)
+                                const SliverToBoxAdapter(
+                                  child: Padding(
+                                    padding: EdgeInsets.symmetric(vertical: 20),
+                                    child: Center(
+                                      child: AppLoadingIndicator(
+                                        size: 45,
+                                        strokeWidth: 5,
+                                      ),
                                     ),
                                   ),
-                                );
-                              }
-                              if (categoryState.getCategoryState ==
-                                  GetCategoryStates.success) {
-                                final list = categoryState.categoryProducts!;
-                                return Expanded(
-                                  child: CustomScrollView(
-                                    controller: _scrollController,
-                                    physics: const BouncingScrollPhysics(),
-                                    slivers: [
-                                      /// 🔹 Grid
-                                      SliverGrid(
-                                        delegate: SliverChildBuilderDelegate((
-                                          context,
-                                          index,
-                                        ) {
-                                          return ProductCard(
-                                            key: ValueKey(
-                                              list[index].productId,
-                                            ),
-                                            product: list[index],
-                                          );
-                                        }, childCount: list.length),
-                                        gridDelegate:
-                                            SliverGridDelegateWithFixedCrossAxisCount(
-                                              crossAxisCount: 2,
-                                              crossAxisSpacing: 15,
-                                              mainAxisSpacing: 15,
-                                              childAspectRatio: 0.58,
-                                              mainAxisExtent: 280.h(context),
-                                            ),
-                                      ),
-                                      if (_isFetching)
-                                        const SliverToBoxAdapter(
-                                          child: Padding(
-                                            padding: EdgeInsets.symmetric(
-                                              vertical: 20,
-                                            ),
-                                            child: Center(
-                                              child: AppLoadingIndicator(
-                                                size: 45,
-                                                strokeWidth: 5,
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                    ],
-                                  ),
-                                );
-                              }
-
-                              return const SizedBox();
-                            },
-                          ),
+                                ),
+                            ],
+                          );
+                        },
+                      ),
                     ),
                   ],
                 ),
@@ -270,7 +240,6 @@ class _ProductsPageState extends State<ProductsPage> {
     );
   }
 
-  /// 🔹 Filter Widget
   Widget _filterWidget({
     required BuildContext context,
     required String selected,

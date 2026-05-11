@@ -1,4 +1,4 @@
-import '../../Domain/Entites/wishlist_item.dart';
+import '../../domain/entities/wishlist_item.dart';
 
 abstract class WishlistEvent {}
 

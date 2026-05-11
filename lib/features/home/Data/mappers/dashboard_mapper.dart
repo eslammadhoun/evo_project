@@ -1,5 +1,5 @@
-import 'package:evo_project/features/home/Data/models/dashboard_model.dart';
-import 'package:evo_project/features/home/Domain/entities/dashboard_entity.dart';
+import 'package:evo_project/features/home/data/models/dashboard_model.dart';
+import 'package:evo_project/features/home/domain/entities/dashboard_entity.dart';
 
 extension DashboardMapper on DashboardModel {
   DashboardEntity toEntity() {

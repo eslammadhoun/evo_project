@@ -11,11 +11,9 @@ class ProductsDatasource {
     final ResponseWrapper getDashboardResponse = await apiClient.get(
       ApiEndpoints.dashboard,
     );
-    if (getDashboardResponse.statusModel.error >= 1) {
+    if (getDashboardResponse.statusModel.error == 1) {
       throw ServerFailure(
-        getDashboardResponse.statusModel.errorMessages
-            .map((error) => error)
-            .toString(),
+        getDashboardResponse.statusModel.errorMessages.join(', '),
       );
     }
 
@@ -23,19 +21,17 @@ class ProductsDatasource {
   }
 
   Future<ResponseWrapper> getProducts({
-    required String catecoryId,
+    required String categoryId,
     required int page,
   }) async {
     final ResponseWrapper getProductsResponse = await apiClient.get(
       ApiEndpoints.products,
-      queryParameters: {'category_id': catecoryId, 'page': page},
+      queryParameters: {'category_id': categoryId, 'page': page},
     );
 
-    if (getProductsResponse.statusModel.error >= 1) {
+    if (getProductsResponse.statusModel.error == 1) {
       throw ServerFailure(
-        getProductsResponse.statusModel.errorMessages
-            .map((error) => error)
-            .toString(),
+        getProductsResponse.statusModel.errorMessages.join(', '),
       );
     }
     return getProductsResponse;
@@ -47,8 +43,8 @@ class ProductsDatasource {
       queryParameters: {'product_id': productId},
     );
 
-    if (getProductResponse.statusModel.code == 1) {
-      throw ServerFailure(getProductResponse.statusModel.errorMessages[0]);
+    if (getProductResponse.statusModel.error == 1) {
+      throw ServerFailure(getProductResponse.statusModel.errorMessages.first);
     }
     return getProductResponse;
   }
@@ -60,9 +56,9 @@ class ProductsDatasource {
       ApiEndpoints.relatedProducts,
       queryParameters: {'prod_id': productId},
     );
-    if (getRelatedProductsReponse.statusModel.code == 1) {
+    if (getRelatedProductsReponse.statusModel.error == 1) {
       throw ServerFailure(
-        getRelatedProductsReponse.statusModel.errorMessages[0],
+        getRelatedProductsReponse.statusModel.errorMessages.first,
       );
     }
 

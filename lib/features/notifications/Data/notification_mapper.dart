@@ -1,5 +1,5 @@
-import 'package:evo_project/features/notifications/Data/models/notification_model.dart';
-import 'package:evo_project/features/notifications/Domain/entites/notification.dart'
+import 'package:evo_project/features/notifications/data/models/notification_model.dart';
+import 'package:evo_project/features/notifications/domain/entities/notification.dart'
     show NotificationEntity;
 
 extension NotificationModelMapper on NotificationModel {

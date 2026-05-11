@@ -1,7 +1,7 @@
 import 'package:evo_project/core/Database/app_database.dart';
 import 'package:evo_project/core/errors/failures.dart';
 import 'package:evo_project/core/services/app_preferences.dart';
-import 'package:evo_project/features/cart/Data/models/cart_item_model.dart';
+import 'package:evo_project/features/cart/data/models/cart_item_model.dart';
 
 class CartLocalDataSource {
   final AppDatabase appDatabase;

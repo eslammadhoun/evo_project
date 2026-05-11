@@ -1,7 +1,7 @@
 import 'package:evo_project/core/Database/app_database.dart';
 import 'package:evo_project/core/Database/tables/notification_table.dart';
 import 'package:evo_project/core/errors/failures.dart';
-import 'package:evo_project/features/notifications/Data/models/notification_model.dart';
+import 'package:evo_project/features/notifications/data/models/notification_model.dart';
 
 class NotificationsDatasource {
   final AppDatabase database;

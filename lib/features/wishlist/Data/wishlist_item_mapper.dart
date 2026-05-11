@@ -1,5 +1,5 @@
-import 'package:evo_project/features/wishlist/Data/models/wishlist_item_model.dart';
-import 'package:evo_project/features/wishlist/Domain/Entites/wishlist_item.dart';
+import 'package:evo_project/features/wishlist/data/models/wishlist_item_model.dart';
+import 'package:evo_project/features/wishlist/domain/entities/wishlist_item.dart';
 
 extension WishlistMapper on WishlistItemModel {
   WishlistItem toEntity() {

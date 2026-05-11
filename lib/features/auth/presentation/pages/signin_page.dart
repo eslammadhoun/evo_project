@@ -1,8 +1,9 @@
 import 'package:evo_project/core/extensions/extensions.dart';
 import 'package:evo_project/core/router/route_names.dart';
+import 'package:evo_project/core/services/snack_service.dart';
 import 'package:evo_project/core/shared/widgets/global_button.dart';
 import 'package:evo_project/core/shared/widgets/global_text_field.dart';
-import 'package:evo_project/core/shared/widgets/loading_indecator.dart';
+import 'package:evo_project/core/shared/widgets/loading_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -65,9 +66,7 @@ class _SigninPageState extends State<SigninPage> {
             }
 
             if (state is AuthError) {
-              ScaffoldMessenger.of(
-                context,
-              ).showSnackBar(SnackBar(content: Text(state.message)));
+              SnackService.show(state.message);
             }
           },
 

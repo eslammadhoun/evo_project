@@ -1,7 +1,7 @@
 import 'package:evo_project/core/extensions/extensions.dart';
-import 'package:evo_project/core/helpers/date_formater.dart';
-import 'package:evo_project/features/notifications/Data/models/notification_model.dart';
-import 'package:evo_project/features/notifications/Domain/entites/notification.dart';
+import 'package:evo_project/core/helpers/date_formatter.dart';
+import 'package:evo_project/features/notifications/data/models/notification_model.dart';
+import 'package:evo_project/features/notifications/domain/entities/notification.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 

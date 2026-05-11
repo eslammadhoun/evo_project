@@ -1,7 +1,7 @@
 import 'package:equatable/equatable.dart';
-import 'package:evo_project/features/cart/Domain/entites/cart_item.dart';
+import 'package:evo_project/features/cart/domain/entities/cart_item.dart';
 
-enum GetCartProductsState { initial, laoding, success, failure }
+enum GetCartProductsState { initial, loading, success, failure }
 
 enum AddProductToCartState { initial, loading, success, failure }
 

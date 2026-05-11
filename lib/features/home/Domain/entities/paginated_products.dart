@@ -1,4 +1,4 @@
-import 'package:evo_project/features/home/Domain/entities/product.dart';
+import 'package:evo_project/features/home/domain/entities/product.dart';
 
 class PaginatedProducts {
   final List<Product> products;

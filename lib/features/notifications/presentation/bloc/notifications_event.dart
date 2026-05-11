@@ -1,4 +1,4 @@
-import 'package:evo_project/features/notifications/Domain/entites/notification.dart';
+import 'package:evo_project/features/notifications/domain/entities/notification.dart';
 
 abstract class NotificationsEvent {
   const NotificationsEvent();

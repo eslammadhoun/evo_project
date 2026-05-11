@@ -1,10 +1,10 @@
-import 'package:evo_project/features/cart/Data/datasources/cart_local_datasource.dart';
+import 'package:evo_project/features/cart/domain/repositories/cart_repository.dart';
 
 class GetCartDiscountState {
-  final CartLocalDataSource cartLocalDataSource;
-  const GetCartDiscountState({required this.cartLocalDataSource});
+  final CartRepository cartRepository;
+  const GetCartDiscountState({required this.cartRepository});
 
   Future<Map<String, dynamic>> call() async {
-    return cartLocalDataSource.getDiscountState();
+    return await cartRepository.getCartDiscountState();
   }
 }

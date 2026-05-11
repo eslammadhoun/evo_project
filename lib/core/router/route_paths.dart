@@ -5,7 +5,7 @@ class RoutePaths {
   static const String signin = '/signin';
   static const String forgetPassword = '/forget_password';
   static const String newPassword = '/new_password';
-  static const String succesPage = '/success_page';
+  static const String successPage = '/success_page';
   static const String home = '/home';
   static const String search = '/search';
   static const String cart = '/cart';

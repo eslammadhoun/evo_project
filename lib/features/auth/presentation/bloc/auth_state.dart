@@ -1,4 +1,4 @@
-import 'package:evo_project/features/auth/Domain/entites/user_entity.dart';
+import 'package:evo_project/features/auth/domain/entities/user_entity.dart';
 
 abstract class AuthState {}
 

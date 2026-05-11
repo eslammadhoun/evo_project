@@ -5,7 +5,7 @@ class NotificationsService {
       FlutterLocalNotificationsPlugin();
 
   Future<void> init() async {
-    notifications
+    await notifications
         .resolvePlatformSpecificImplementation<
           AndroidFlutterLocalNotificationsPlugin
         >()

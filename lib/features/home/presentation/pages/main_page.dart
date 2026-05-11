@@ -3,8 +3,8 @@ import 'package:evo_project/core/extensions/extensions.dart';
 import 'package:evo_project/core/router/route_paths.dart';
 import 'package:evo_project/core/shared/widgets/app_drawer.dart';
 import 'package:evo_project/core/shared/widgets/custom_navbar.dart';
-import 'package:evo_project/features/cart/Presentation/cartBloc/cart_bloc.dart';
-import 'package:evo_project/features/cart/Presentation/cartBloc/cart_state.dart';
+import 'package:evo_project/features/cart/presentation/cartBloc/cart_bloc.dart';
+import 'package:evo_project/features/cart/presentation/cartBloc/cart_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
@@ -33,9 +33,10 @@ class MainPage extends StatelessWidget {
             );
           },
         ),
+
         title: Text(
           navigationShell.currentIndex == 1
-              ? 'Search'
+              ? ''
               : navigationShell.currentIndex == 2
               ? 'Order'
               : navigationShell.currentIndex == 3

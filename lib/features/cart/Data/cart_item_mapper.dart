@@ -1,5 +1,5 @@
-import 'package:evo_project/features/cart/Data/models/cart_item_model.dart';
-import 'package:evo_project/features/cart/Domain/entites/cart_item.dart';
+import 'package:evo_project/features/cart/data/models/cart_item_model.dart';
+import 'package:evo_project/features/cart/domain/entities/cart_item.dart';
 
 extension CartItemMapper on CartItemModel {
   CartItem toEntity() {

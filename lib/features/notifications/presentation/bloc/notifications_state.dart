@@ -1,5 +1,5 @@
 import 'package:equatable/equatable.dart';
-import 'package:evo_project/features/notifications/Domain/entites/notification.dart';
+import 'package:evo_project/features/notifications/domain/entities/notification.dart';
 
 enum GetNotificationsState { initial, loading, success, failure }
 

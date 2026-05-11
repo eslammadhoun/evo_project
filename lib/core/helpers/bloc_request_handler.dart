@@ -1,7 +1,7 @@
 import 'package:dartz/dartz.dart';
 import 'package:evo_project/core/errors/failures.dart';
 
-Future<void> blocRequestHandeler<T>({
+Future<void> blocRequestHandler<T>({
   required Future<Either<Failure, T>> Function() request,
   required Function() onLoading,
   required Function(T data) onSuccess,

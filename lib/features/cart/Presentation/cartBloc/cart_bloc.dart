@@ -1,13 +1,13 @@
 import 'package:evo_project/core/helpers/bloc_request_handler.dart';
-import 'package:evo_project/features/cart/Domain/entites/cart_item.dart';
-import 'package:evo_project/features/cart/Domain/usecases/add_product_to_cart.dart';
-import 'package:evo_project/features/cart/Domain/usecases/delete_product_from_cart.dart';
-import 'package:evo_project/features/cart/Domain/usecases/get_cart.dart';
-import 'package:evo_project/features/cart/Domain/usecases/get_cart_discount.dart';
-import 'package:evo_project/features/cart/Domain/usecases/set_cart_discount.dart';
-import 'package:evo_project/features/cart/Domain/usecases/update_product_quantity.dart';
-import 'package:evo_project/features/cart/Presentation/cartBloc/cart_event.dart';
-import 'package:evo_project/features/cart/Presentation/cartBloc/cart_state.dart';
+import 'package:evo_project/features/cart/domain/entities/cart_item.dart';
+import 'package:evo_project/features/cart/domain/usecases/add_product_to_cart.dart';
+import 'package:evo_project/features/cart/domain/usecases/delete_product_from_cart.dart';
+import 'package:evo_project/features/cart/domain/usecases/get_cart.dart';
+import 'package:evo_project/features/cart/domain/usecases/get_cart_discount.dart';
+import 'package:evo_project/features/cart/domain/usecases/set_cart_discount.dart';
+import 'package:evo_project/features/cart/domain/usecases/update_product_quantity.dart';
+import 'package:evo_project/features/cart/presentation/cartBloc/cart_event.dart';
+import 'package:evo_project/features/cart/presentation/cartBloc/cart_state.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class CartBloc extends Bloc<CartEvent, CartState> {
@@ -62,10 +62,10 @@ class CartBloc extends Bloc<CartEvent, CartState> {
     GetCartProductsEvent event,
     Emitter<CartState> emit,
   ) async {
-    await blocRequestHandeler<List<CartItem>>(
+    await blocRequestHandler<List<CartItem>>(
       request: () => getCartUsecase(),
       onLoading: () => emit(
-        state.copyWith(getCartProductsState: GetCartProductsState.laoding),
+        state.copyWith(getCartProductsState: GetCartProductsState.loading),
       ),
       onSuccess: (cartProducts) {
         emit(
@@ -89,7 +89,7 @@ class CartBloc extends Bloc<CartEvent, CartState> {
     AddProductToCartEvent event,
     Emitter<CartState> emit,
   ) async {
-    await blocRequestHandeler<void>(
+    await blocRequestHandler<void>(
       request: () => addProductToCartUsecase(cartItem: event.cartItem),
       onLoading: () => emit(
         state.copyWith(addProductToCartState: AddProductToCartState.loading),
@@ -128,7 +128,7 @@ class CartBloc extends Bloc<CartEvent, CartState> {
         .toList();
     emit(state.copyWith(cartProducts: updatedList));
 
-    await blocRequestHandeler(
+    await blocRequestHandler(
       request: () => deleteProductFromCartUsecase(productId: event.productId),
       onLoading: () => emit(
         state.copyWith(

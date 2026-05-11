@@ -3,23 +3,25 @@ import 'package:evo_project/core/constants/spacing.dart';
 import 'package:evo_project/core/extensions/extensions.dart';
 import 'package:evo_project/core/logger/app_logger.dart';
 import 'package:evo_project/core/router/route_paths.dart';
+import 'package:evo_project/core/services/snack_service.dart';
 import 'package:evo_project/core/shared/widgets/global_button.dart';
-import 'package:evo_project/core/shared/widgets/loading_indecator.dart';
+import 'package:evo_project/core/shared/widgets/loading_indicator.dart';
 import 'package:evo_project/core/theme/text_styles.dart';
 import 'package:evo_project/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:evo_project/features/auth/presentation/bloc/auth_event.dart';
 import 'package:evo_project/features/auth/presentation/bloc/auth_state.dart';
-import 'package:evo_project/features/cart/Presentation/cartBloc/cart_bloc.dart';
-import 'package:evo_project/features/cart/Presentation/cartBloc/cart_event.dart';
-import 'package:evo_project/features/home/presentation/bloc/home_bloc.dart';
-import 'package:evo_project/features/home/presentation/bloc/home_event.dart';
+import 'package:evo_project/features/cart/presentation/cartBloc/cart_bloc.dart';
+import 'package:evo_project/features/cart/presentation/cartBloc/cart_event.dart';
+import 'package:evo_project/features/home/presentation/bloc/profile/profile_bloc.dart';
+import 'package:evo_project/features/home/presentation/bloc/profile/profile_event.dart';
+import 'package:evo_project/features/home/presentation/bloc/profile/profile_state.dart';
+import 'package:evo_project/core/di/service_locator.dart';
+import 'package:evo_project/core/services/user_session.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
-
-import '../../bloc/states/home_state.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -45,7 +47,7 @@ class _ProfilePageState extends State<ProfilePage> {
     final File file = File(pickedFile.path);
 
     if (mounted) {
-      context.read<HomeBloc>().add(UploadProfileImageEvent(imageFile: file));
+      context.read<ProfileBloc>().add(UploadProfileImageEvent(imageFile: file));
     }
   }
 
@@ -91,7 +93,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 return Dialog(
                   child: StatefulBuilder(
                     builder: (context, setState) =>
-                        _signOutPubup(context: context),
+                        _signOutPopup(context: context),
                   ),
                 );
               },
@@ -120,13 +122,20 @@ class _ProfilePageState extends State<ProfilePage> {
               child: Stack(
                 children: [
                   Positioned.fill(
-                    child: BlocConsumer<HomeBloc, HomeState>(
+                    child: BlocConsumer<ProfileBloc, ProfileState>(
                       builder: (BuildContext context, state) {
-                        return state.profileImageState.profileImage != null
-                            ? Image.file(state.profileImageState.profileImage!, fit: BoxFit.cover,)
-                            : SizedBox();
+                        return state.profileImage != null
+                            ? Image.file(state.profileImage!, fit: BoxFit.cover)
+                            : const SizedBox();
                       },
-                      listener: (BuildContext context, state) {},
+                      listener: (BuildContext context, state) {
+                        if (state.uploadProfileImageState ==
+                            UploadProfileImageState.failure) {
+                          SnackService.show(
+                            state.errorMessage ?? 'Upload failed',
+                          );
+                        }
+                      },
                     ),
                   ),
                   isEditing
@@ -163,7 +172,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   children: [
                     Expanded(
                       child: Text(
-                        'Callie Mosley',
+                        sl<UserSession>().name ?? 'User Name',
                         style: context.textStyles.headlineSmall,
                       ),
                     ),
@@ -182,14 +191,19 @@ class _ProfilePageState extends State<ProfilePage> {
                           isEditing
                               ? 'lib/assets/icons/check.svg'
                               : 'lib/assets/icons/edit-pin.svg',
-                          color: isEditing ? Color(0xff00824B) : null,
+                          colorFilter: isEditing
+                              ? ColorFilter.mode(
+                                  Color(0xff00824B),
+                                  BlendMode.srcIn,
+                                )
+                              : null,
                         ),
                       ),
                     ),
                   ],
                 ),
                 Text(
-                  'calliemosley@mail.com',
+                  sl<UserSession>().email ?? 'user@mail.com',
                   style: context.textStyles.bodyMedium,
                 ),
               ],
@@ -252,8 +266,8 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  // Sign out pubup
-  Widget _signOutPubup({required BuildContext context}) {
+  // Sign out popup
+  Widget _signOutPopup({required BuildContext context}) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 20),
       child: Column(
@@ -272,7 +286,10 @@ class _ProfilePageState extends State<ProfilePage> {
               child: SvgPicture.asset(
                 'lib/assets/icons/log-out.svg',
                 width: 24.w(context),
-                color: context.colors.primary,
+                colorFilter: ColorFilter.mode(
+                  context.colors.primary,
+                  BlendMode.srcIn,
+                ),
               ),
             ),
           ),
@@ -316,9 +333,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     }
 
                     if (state is AuthError) {
-                      ScaffoldMessenger.of(
-                        context,
-                      ).showSnackBar(SnackBar(content: Text(state.message)));
+                      SnackService.show(state.message);
                       context.pop();
                     }
                   },

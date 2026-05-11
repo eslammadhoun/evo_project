@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:evo_project/features/wishlist/Domain/Entites/wishlist_item.dart';
+import 'package:evo_project/core/theme/app_colors.dart';
+import 'package:evo_project/features/wishlist/domain/entities/wishlist_item.dart';
 import 'package:evo_project/features/wishlist/presentation/bloc/wishlist_bloc.dart';
 import 'package:evo_project/features/wishlist/presentation/bloc/wishlist_event.dart';
 import 'package:flutter/material.dart';
@@ -9,8 +10,8 @@ import 'package:evo_project/core/extensions/extensions.dart';
 import 'package:evo_project/core/helpers/cache_manager.dart';
 import 'package:evo_project/core/helpers/currency_symbols.dart';
 import 'package:evo_project/core/router/route_names.dart';
-import 'package:evo_project/core/shared/widgets/loading_indecator.dart';
-import 'package:evo_project/features/home/Domain/entities/product.dart';
+import 'package:evo_project/core/shared/widgets/loading_indicator.dart';
+import 'package:evo_project/features/home/domain/entities/product.dart';
 
 class ProductCard extends StatelessWidget {
   final Product? product;
@@ -89,14 +90,21 @@ class ProductCard extends StatelessWidget {
                           child: Container(
                             padding: const EdgeInsets.all(6),
                             decoration: BoxDecoration(
-                              color: Colors.white,
+                              color: AppColors.background,
                               borderRadius: BorderRadius.circular(8),
+                              boxShadow: const [
+                                BoxShadow(
+                                  color: AppColors.shadow,
+                                  blurRadius: 4,
+                                  offset: Offset(0, 2),
+                                ),
+                              ],
                             ),
                             child: Icon(
                               isFav ? Icons.favorite : Icons.favorite_border,
                               size: 18,
                               color: isFav
-                                  ? Colors.red
+                                  ? AppColors.error
                                   : context.colors.secondary,
                             ),
                           ),

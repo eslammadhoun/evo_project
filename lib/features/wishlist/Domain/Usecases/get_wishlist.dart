@@ -1,10 +1,10 @@
 import 'package:dartz/dartz.dart';
 import 'package:evo_project/core/errors/failures.dart';
-import 'package:evo_project/features/wishlist/Data/repos/wishlist_repo.dart';
-import 'package:evo_project/features/wishlist/Domain/Entites/wishlist_item.dart';
+import 'package:evo_project/features/wishlist/domain/repositories/wishlist_repository.dart';
+import 'package:evo_project/features/wishlist/domain/entities/wishlist_item.dart';
 
 class GetWishlist {
-  final WishlistRepo repo;
+  final WishlistRepository repo;
 
   GetWishlist(this.repo);
 

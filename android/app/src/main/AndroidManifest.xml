@@ -6,6 +6,8 @@
     <uses-permission android:name="android.permission.VIBRATE" />
 
     <application
+        android:networkSecurityConfig="@xml/network_security_config"
+        android:usesCleartextTraffic="false"
         android:label="evo_project"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">

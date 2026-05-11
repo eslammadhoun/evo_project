@@ -1,7 +1,7 @@
-import 'package:evo_project/features/wishlist/Data/repos/wishlist_repo.dart';
+import 'package:evo_project/features/wishlist/domain/repositories/wishlist_repository.dart';
 
 class DeleteWishlistItem {
-  final WishlistRepo repo;
+  final WishlistRepository repo;
 
   DeleteWishlistItem(this.repo);
 

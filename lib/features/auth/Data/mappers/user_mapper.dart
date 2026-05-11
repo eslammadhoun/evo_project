@@ -1,5 +1,5 @@
-import 'package:evo_project/features/auth/Data/models/user_model.dart';
-import 'package:evo_project/features/auth/Domain/entites/user_entity.dart';
+import 'package:evo_project/features/auth/data/models/user_model.dart';
+import 'package:evo_project/features/auth/domain/entities/user_entity.dart';
 
 class UserMapper {
   static UserEntity toUserEntity({required UserModel userModel}) {

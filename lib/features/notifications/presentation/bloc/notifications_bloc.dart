@@ -1,6 +1,6 @@
 import 'package:evo_project/core/helpers/bloc_request_handler.dart';
-import 'package:evo_project/features/notifications/Domain/usecases/get_notifications.dart';
-import 'package:evo_project/features/notifications/Domain/usecases/insert_notification.dart';
+import 'package:evo_project/features/notifications/domain/usecases/get_notifications.dart';
+import 'package:evo_project/features/notifications/domain/usecases/insert_notification.dart';
 import 'package:evo_project/features/notifications/presentation/bloc/notifications_event.dart';
 import 'package:evo_project/features/notifications/presentation/bloc/notifications_state.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -20,7 +20,7 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
     GetNotificationsEvent event,
     Emitter<NotificationsState> emit,
   ) async {
-    await blocRequestHandeler(
+    await blocRequestHandler(
       request: () => getNotificationsUsecase(),
       onLoading: () => emit(
         state.copyWith(getNotificationsState: GetNotificationsState.loading),

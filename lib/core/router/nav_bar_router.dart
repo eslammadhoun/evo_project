@@ -1,6 +1,6 @@
 import 'package:evo_project/core/router/route_paths.dart';
 import 'package:go_router/go_router.dart';
-import 'package:evo_project/features/cart/Presentation/pages/cart_page.dart';
+import 'package:evo_project/features/cart/presentation/pages/cart_page.dart';
 import 'package:evo_project/features/home/presentation/pages/navbar_pages/home_page.dart';
 import 'package:evo_project/features/home/presentation/pages/main_page.dart';
 import 'package:evo_project/features/home/presentation/pages/navbar_pages/profile_page.dart';

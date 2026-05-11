@@ -9,9 +9,9 @@ class AppTheme {
     // Colors
     scaffoldBackgroundColor: Colors.white,
     colorScheme: ColorScheme.light(
-      primary: AppColors.mainColor,
-      secondary: AppColors.textColor,
-      tertiary: AppColors.whiteColor,
+      primary: AppColors.primary,
+      secondary: AppColors.textPrimary,
+      tertiary: AppColors.background,
     ),
 
     // Text Theme

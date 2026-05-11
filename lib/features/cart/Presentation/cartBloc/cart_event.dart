@@ -1,4 +1,4 @@
-import 'package:evo_project/features/cart/Domain/entites/cart_item.dart';
+import 'package:evo_project/features/cart/domain/entities/cart_item.dart';
 
 class CartEvent {
   const CartEvent();

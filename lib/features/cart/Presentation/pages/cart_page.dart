@@ -4,13 +4,13 @@ import 'package:evo_project/core/router/route_names.dart';
 import 'package:evo_project/core/services/snack_service.dart';
 import 'package:evo_project/core/shared/widgets/global_button.dart';
 import 'package:evo_project/core/shared/widgets/global_text_field.dart';
-import 'package:evo_project/core/shared/widgets/loading_indecator.dart';
+import 'package:evo_project/core/shared/widgets/loading_indicator.dart';
 import 'package:evo_project/core/theme/app_typography.dart';
 import 'package:evo_project/core/theme/text_styles.dart';
-import 'package:evo_project/features/cart/Presentation/cartBloc/cart_bloc.dart';
-import 'package:evo_project/features/cart/Presentation/cartBloc/cart_event.dart';
-import 'package:evo_project/features/cart/Presentation/cartBloc/cart_state.dart';
-import 'package:evo_project/features/cart/Presentation/widgets/cart_product_widget.dart';
+import 'package:evo_project/features/cart/presentation/cartBloc/cart_bloc.dart';
+import 'package:evo_project/features/cart/presentation/cartBloc/cart_event.dart';
+import 'package:evo_project/features/cart/presentation/cartBloc/cart_state.dart';
+import 'package:evo_project/features/cart/presentation/widgets/cart_product_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
@@ -103,12 +103,8 @@ class CartPage extends StatelessWidget {
       listener: (context, state) {
         if (state.deleteProductFromCartState ==
             DeleteProductFromCartState.failure) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                'faild to add product to cart, Try again: ${state.deleteProductFromCartErrorMessage}',
-              ),
-            ),
+          SnackService.show(
+            'faild to add product to cart, Try again: ${state.deleteProductFromCartErrorMessage}',
           );
         }
         if (state.deleteProductFromCartState ==
@@ -118,7 +114,7 @@ class CartPage extends StatelessWidget {
       },
       builder: (context, state) {
         if (state.getCartProductsState == GetCartProductsState.initial ||
-            state.getCartProductsState == GetCartProductsState.laoding) {
+            state.getCartProductsState == GetCartProductsState.loading) {
           return Center(child: AppLoadingIndicator(size: 60, strokeWidth: 8));
         } else if (state.getCartProductsState == GetCartProductsState.failure &&
             state.getCartErrorMessage != null) {

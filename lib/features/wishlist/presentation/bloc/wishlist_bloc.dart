@@ -1,8 +1,8 @@
 import 'package:evo_project/core/helpers/bloc_request_handler.dart';
-import 'package:evo_project/features/wishlist/Domain/Entites/wishlist_item.dart';
+import 'package:evo_project/features/wishlist/domain/entities/wishlist_item.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../Domain/Usecases/get_wishlist.dart';
-import '../../Domain/Usecases/toggle_wishlist.dart';
+import '../../domain/usecases/get_wishlist.dart';
+import '../../domain/usecases/toggle_wishlist.dart';
 import 'wishlist_event.dart';
 import 'wishlist_state.dart';
 
@@ -20,7 +20,7 @@ class WishlistBloc extends Bloc<WishlistEvent, WishlistState> {
     GetWishlistEvent event,
     Emitter<WishlistState> emit,
   ) async {
-    await blocRequestHandeler(
+    await blocRequestHandler(
       request: () => getWishlist(),
       onLoading: () =>
           emit(state.copyWith(getWishlistState: GetWishlistState.loading)),

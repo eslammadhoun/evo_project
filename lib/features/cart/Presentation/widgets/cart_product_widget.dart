@@ -2,12 +2,13 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:evo_project/core/extensions/extensions.dart';
 import 'package:evo_project/core/helpers/currency_symbols.dart';
 import 'package:evo_project/core/router/route_names.dart';
+import 'package:evo_project/core/services/snack_service.dart';
 import 'package:evo_project/core/shared/widgets/global_button.dart';
 import 'package:evo_project/core/theme/text_styles.dart';
-import 'package:evo_project/features/cart/Domain/entites/cart_item.dart';
-import 'package:evo_project/features/cart/Presentation/cartBloc/cart_bloc.dart';
-import 'package:evo_project/features/cart/Presentation/cartBloc/cart_event.dart';
-import 'package:evo_project/features/cart/Presentation/cartBloc/cart_state.dart';
+import 'package:evo_project/features/cart/domain/entities/cart_item.dart';
+import 'package:evo_project/features/cart/presentation/cartBloc/cart_bloc.dart';
+import 'package:evo_project/features/cart/presentation/cartBloc/cart_event.dart';
+import 'package:evo_project/features/cart/presentation/cartBloc/cart_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
@@ -204,6 +205,8 @@ class CartProductWidget extends StatelessWidget {
                     context.read<CartBloc>().add(
                       DeleteProductFromCartEvent(productId: cartItem.productId),
                     );
+                    context.read<CartBloc>().add(ResetPromoCodeEvent());
+                    SnackService.show("Promo Code Reset");
                     Navigator.pop(context);
                   },
                   height: 50.h(context),

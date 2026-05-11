@@ -2,19 +2,14 @@ import 'package:evo_project/core/di/service_locator.dart';
 import 'package:evo_project/core/router/nav_bar_router.dart';
 import 'package:evo_project/core/router/route_names.dart';
 import 'package:evo_project/core/router/route_paths.dart';
-import 'package:evo_project/core/shared/succes_page.dart';
+import 'package:evo_project/core/shared/success_page.dart';
 import 'package:evo_project/features/auth/presentation/pages/forget_password.dart';
 import 'package:evo_project/features/auth/presentation/pages/new_password.dart';
 import 'package:evo_project/features/auth/presentation/pages/signin_page.dart';
 import 'package:evo_project/features/auth/presentation/pages/signup_page.dart';
-import 'package:evo_project/features/cart/Presentation/pages/checkout_page.dart';
-import 'package:evo_project/features/home/Domain/usecases/get_category.dart';
-import 'package:evo_project/features/home/Domain/usecases/get_dashboard.dart';
-import 'package:evo_project/features/home/Domain/usecases/get_product.dart';
-import 'package:evo_project/features/home/Domain/usecases/get_related_products.dart';
-import 'package:evo_project/features/home/Domain/usecases/upload_profile_image.dart';
-import 'package:evo_project/features/home/presentation/bloc/home_bloc.dart';
-import 'package:evo_project/features/home/presentation/bloc/home_event.dart';
+import 'package:evo_project/features/cart/presentation/pages/checkout_page.dart';
+import 'package:evo_project/features/home/presentation/bloc/product_details/product_details_bloc.dart';
+import 'package:evo_project/features/home/presentation/bloc/product_details/product_details_event.dart';
 import 'package:evo_project/features/home/presentation/pages/filter_page.dart';
 import 'package:evo_project/features/home/presentation/pages/product_description_page.dart';
 import 'package:evo_project/features/home/presentation/pages/product_details_page.dart';
@@ -79,11 +74,11 @@ class AppRouter {
 
       // Success Page
       GoRoute(
-        path: RoutePaths.succesPage,
-        name: RouteNames.succesPage,
+        path: RoutePaths.successPage,
+        name: RouteNames.successPage,
         builder: (context, state) {
           final Map<String, dynamic> data = state.extra as Map<String, dynamic>;
-          return SuccesPage(
+          return SuccessPage(
             title: data['title'],
             subTitle: data['subTitle'],
             iconPath: data['iconPath'],
@@ -114,17 +109,10 @@ class AppRouter {
         name: RouteNames.productDetailsPage,
         builder: (context, state) {
           final String productId = state.extra as String;
-          return BlocProvider<HomeBloc>(
-            create: (_) =>
-                HomeBloc(
-                    getProductsUsecase: sl<GetCategoryUsecase>(),
-                    getProductUsecase: sl<GetProductUsecase>(),
-                    getRelatedProductsUsecase: sl<GetRelatedProducts>(),
-                    getDashboardUsecase: sl<GetDashboardUsecase>(),
-                    uploadProfileImageUsecase: sl<UploadProfileImageUsecase>(),
-                  )
-                  ..add(GetProductEvent(productId: productId))
-                  ..add(GetRelatedProductsEvent(productId: productId)),
+          return BlocProvider<ProductDetailsBloc>(
+            create: (_) => sl<ProductDetailsBloc>()
+              ..add(GetProductEvent(productId: productId))
+              ..add(GetRelatedProductsEvent(productId: productId)),
             child: const ProductDetailsPage(),
           );
         },

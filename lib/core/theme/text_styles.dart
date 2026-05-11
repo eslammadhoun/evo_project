@@ -7,48 +7,48 @@ class TextStyles {
     fontFamily: AppTypography.headingsFont,
     fontSize: 32,
     fontWeight: AppTypography.bold,
-    color: AppColors.mainColor,
+    color: AppColors.primary,
   );
 
   static TextStyle headingsH3 = TextStyle(
     fontFamily: AppTypography.headingsFont,
     fontWeight: AppTypography.medium,
     fontSize: 20,
-    color: AppColors.mainColor,
+    color: AppColors.primary,
   );
 
   static TextStyle headingsH4 = TextStyle(
     fontFamily: AppTypography.headingsFont,
     fontWeight: AppTypography.medium,
     fontSize: 18,
-    color: AppColors.mainColor,
+    color: AppColors.primary,
   );
 
   static TextStyle headingsH5 = TextStyle(
     fontFamily: AppTypography.headingsFont,
     fontWeight: AppTypography.semiBold,
     fontSize: 14,
-    color: AppColors.mainColor,
+    color: AppColors.primary,
   );
 
   static TextStyle textStyle16 = TextStyle(
     fontFamily: AppTypography.seconderyFont,
     fontSize: 16,
     fontWeight: AppTypography.regular,
-    color: AppColors.textColor,
+    color: AppColors.textPrimary,
   );
 
   static TextStyle textStyle14 = TextStyle(
     fontFamily: AppTypography.seconderyFont,
     fontSize: 14,
     fontWeight: AppTypography.regular,
-    color: AppColors.textColor,
+    color: AppColors.textPrimary,
   );
 
   static TextStyle textStyle14Medium = TextStyle(
     fontFamily: AppTypography.seconderyFont,
     fontSize: 14,
     fontWeight: AppTypography.medium,
-    color: AppColors.mainColor,
+    color: AppColors.primary,
   );
 }

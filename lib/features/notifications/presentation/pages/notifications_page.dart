@@ -1,8 +1,8 @@
 import 'package:evo_project/core/constants/spacing.dart';
 import 'package:evo_project/core/extensions/extensions.dart';
 import 'package:evo_project/core/shared/widgets/header.dart';
-import 'package:evo_project/core/shared/widgets/loading_indecator.dart';
-import 'package:evo_project/features/notifications/Domain/entites/notification.dart';
+import 'package:evo_project/core/shared/widgets/loading_indicator.dart';
+import 'package:evo_project/features/notifications/domain/entities/notification.dart';
 import 'package:evo_project/features/notifications/presentation/bloc/notifications_bloc.dart';
 import 'package:evo_project/features/notifications/presentation/bloc/notifications_state.dart';
 import 'package:evo_project/features/notifications/presentation/widgets/notification_widget.dart';

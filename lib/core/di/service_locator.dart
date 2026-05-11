@@ -4,42 +4,52 @@ import 'package:evo_project/core/Database/database_provider.dart';
 import 'package:evo_project/core/network/api_client.dart';
 import 'package:evo_project/core/network/app_interceptors.dart';
 import 'package:evo_project/core/services/app_preferences.dart';
-import 'package:evo_project/core/services/user_seesion.dart';
-import 'package:evo_project/features/auth/Data/data_sources/auth_remote_datasource.dart';
-import 'package:evo_project/features/auth/Data/repositories_imp/auth_repo_imp.dart';
-import 'package:evo_project/features/auth/Domain/usecases/login.dart';
-import 'package:evo_project/features/auth/Domain/usecases/logout.dart';
+import 'package:evo_project/core/services/user_session.dart';
+import 'package:evo_project/features/auth/data/data_sources/auth_remote_datasource.dart';
+import 'package:evo_project/features/auth/data/repositories_imp/auth_repo_imp.dart';
+import 'package:evo_project/features/auth/domain/usecases/login.dart';
+import 'package:evo_project/features/auth/domain/usecases/logout.dart';
+import 'package:evo_project/features/auth/domain/usecases/register.dart';
+import 'package:evo_project/features/auth/domain/repositories/auth_reposotory.dart';
 import 'package:evo_project/features/auth/presentation/bloc/auth_bloc.dart';
-import 'package:evo_project/features/cart/Data/datasources/cart_local_datasource.dart';
-import 'package:evo_project/features/cart/Data/repos/cart_repo.dart';
-import 'package:evo_project/features/cart/Domain/usecases/add_product_to_cart.dart';
-import 'package:evo_project/features/cart/Domain/usecases/delete_product_from_cart.dart';
-import 'package:evo_project/features/cart/Domain/usecases/get_cart.dart';
-import 'package:evo_project/features/cart/Domain/usecases/get_cart_discount.dart';
-import 'package:evo_project/features/cart/Domain/usecases/set_cart_discount.dart';
-import 'package:evo_project/features/cart/Domain/usecases/update_product_quantity.dart';
-import 'package:evo_project/features/cart/Presentation/cartBloc/cart_bloc.dart';
-import 'package:evo_project/features/home/Data/datasources/products_datasource.dart';
-import 'package:evo_project/features/home/Data/datasources/profile_image_datasource.dart';
-import 'package:evo_project/features/home/Data/repositories/products_repository.dart';
-import 'package:evo_project/features/home/Domain/usecases/get_dashboard.dart';
-import 'package:evo_project/features/home/Domain/usecases/get_product.dart';
-import 'package:evo_project/features/home/Domain/usecases/get_category.dart';
-import 'package:evo_project/features/home/Domain/usecases/get_related_products.dart';
-import 'package:evo_project/features/home/Domain/usecases/upload_profile_image.dart';
-import 'package:evo_project/features/home/presentation/bloc/home_bloc.dart';
-import 'package:evo_project/features/notifications/Data/datasources/notifications_datasource.dart';
-import 'package:evo_project/features/notifications/Data/repos/notifications_repo.dart';
-import 'package:evo_project/features/notifications/Domain/usecases/get_notifications.dart';
-import 'package:evo_project/features/notifications/Domain/usecases/insert_notification.dart';
+import 'package:evo_project/features/cart/data/datasources/cart_local_datasource.dart';
+import 'package:evo_project/features/cart/data/repos/cart_repo_imp.dart';
+import 'package:evo_project/features/cart/domain/repositories/cart_repository.dart';
+import 'package:evo_project/features/cart/domain/usecases/add_product_to_cart.dart';
+import 'package:evo_project/features/cart/domain/usecases/delete_product_from_cart.dart';
+import 'package:evo_project/features/cart/domain/usecases/get_cart.dart';
+import 'package:evo_project/features/cart/domain/usecases/get_cart_discount.dart';
+import 'package:evo_project/features/cart/domain/usecases/set_cart_discount.dart';
+import 'package:evo_project/features/cart/domain/usecases/update_product_quantity.dart';
+import 'package:evo_project/features/cart/presentation/cartBloc/cart_bloc.dart';
+import 'package:evo_project/features/home/data/datasources/products_datasource.dart';
+import 'package:evo_project/features/home/data/datasources/profile_image_datasource.dart';
+import 'package:evo_project/features/home/data/repositories/products_repository_imp.dart';
+import 'package:evo_project/features/home/domain/repositories/products_repository.dart';
+import 'package:evo_project/features/home/domain/usecases/get_dashboard.dart';
+import 'package:evo_project/features/home/domain/usecases/get_product.dart';
+import 'package:evo_project/features/home/domain/usecases/get_category.dart';
+import 'package:evo_project/features/home/domain/usecases/get_related_products.dart';
+import 'package:evo_project/features/home/domain/usecases/upload_profile_image.dart';
+import 'package:evo_project/features/home/presentation/bloc/dashboard/dashboard_bloc.dart';
+import 'package:evo_project/features/home/presentation/bloc/category/category_bloc.dart';
+import 'package:evo_project/features/home/presentation/bloc/product_details/product_details_bloc.dart';
+import 'package:evo_project/features/home/presentation/bloc/profile/profile_bloc.dart';
+import 'package:evo_project/features/notifications/data/datasources/notifications_datasource.dart';
+import 'package:evo_project/features/notifications/data/repos/notifications_repo_imp.dart';
+import 'package:evo_project/features/notifications/domain/repositories/notifications_repository.dart';
+import 'package:evo_project/features/notifications/domain/usecases/get_notifications.dart';
+import 'package:evo_project/features/notifications/domain/usecases/insert_notification.dart';
 import 'package:evo_project/features/notifications/presentation/bloc/notifications_bloc.dart';
-import 'package:evo_project/features/wishlist/Data/datasources/wishlist_datesource.dart';
-import 'package:evo_project/features/wishlist/Data/repos/wishlist_repo.dart';
-import 'package:evo_project/features/wishlist/Domain/Usecases/get_wishlist.dart';
-import 'package:evo_project/features/wishlist/Domain/Usecases/toggle_wishlist.dart';
+import 'package:evo_project/features/wishlist/data/datasources/wishlist_datasource.dart';
+import 'package:evo_project/features/wishlist/data/repos/wishlist_repo_imp.dart';
+import 'package:evo_project/features/wishlist/domain/repositories/wishlist_repository.dart';
+import 'package:evo_project/features/wishlist/domain/usecases/get_wishlist.dart';
+import 'package:evo_project/features/wishlist/domain/usecases/toggle_wishlist.dart';
 import 'package:evo_project/features/wishlist/presentation/bloc/wishlist_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 final sl = GetIt.instance;
@@ -53,36 +63,45 @@ Future<void> initDI() async {
   final sharedPreferences = await SharedPreferences.getInstance();
   sl.registerLazySingleton(() => sharedPreferences);
   sl.registerLazySingleton(() => Dio());
+  sl.registerLazySingleton(
+    () => const FlutterSecureStorage(
+      // Use EncryptedSharedPreferences on Android (AES-256, API 23+)
+      aOptions: AndroidOptions(encryptedSharedPreferences: true),
+    ),
+  );
 
   //* Helpers
   //* Services
-  sl.registerLazySingleton<AppPreferences>(() => AppPreferences(sl()));
+  sl.registerLazySingleton<AppPreferences>(
+    () => AppPreferences(sl(), sl<FlutterSecureStorage>()),
+  );
+  // Load (and migrate) the token into memory before any network call fires.
+  await sl<AppPreferences>().loadToken();
   sl.registerLazySingleton<DatabaseProvider>(() => DatabaseProvider());
   sl.registerLazySingleton<AppDatabase>(
     () => AppDatabase(sl<DatabaseProvider>()),
   );
 
   //* Network
-  sl.registerLazySingleton<ApiClient>(() => ApiClient(dioClient: sl()));
   sl.registerLazySingleton<AppInterceptors>(
     () => AppInterceptors(appPreferences: sl(), dio: sl<Dio>()),
   );
-  sl.registerLazySingleton<UserSeesion>(
-    () => UserSeesion(
-      apiConsumer: sl<ApiClient>(),
-      appPreferences: sl<AppPreferences>(),
-    ),
+  sl.registerLazySingleton<ApiConsumer>(
+    () => ApiClient(dioClient: sl(), interceptors: sl<AppInterceptors>()),
+  );
+  sl.registerLazySingleton<UserSession>(
+    () => UserSession(appPreferences: sl<AppPreferences>()),
   );
 
   //! Features
   // ================================= Auth =================================
   //* Data sources
   sl.registerLazySingleton<AuthRemoteDatasource>(
-    () => AuthRemoteDatasource(userSeesion: sl<UserSeesion>()),
+    () => AuthRemoteDatasource(apiConsumer: sl<ApiConsumer>()),
   );
 
   //* repositories
-  sl.registerLazySingleton<AuthRepoImp>(
+  sl.registerLazySingleton<AuthRepository>(
     () => AuthRepoImp(
       authRemoteDatasource: sl<AuthRemoteDatasource>(),
       appPreferences: sl<AppPreferences>(),
@@ -91,11 +110,14 @@ Future<void> initDI() async {
 
   //* UseCases
   sl.registerLazySingleton<LoginUseCase>(
-    () => LoginUseCase(repository: sl<AuthRepoImp>()),
+    () => LoginUseCase(repository: sl<AuthRepository>()),
+  );
+  sl.registerLazySingleton<RegisterUseCase>(
+    () => RegisterUseCase(repository: sl<AuthRepository>()),
   );
   sl.registerLazySingleton<LogoutUsecase>(
     () => LogoutUsecase(
-      authRepository: sl<AuthRepoImp>(),
+      authRepository: sl<AuthRepository>(),
       appDatabase: sl<AppDatabase>(),
     ),
   );
@@ -105,19 +127,20 @@ Future<void> initDI() async {
     () => AuthBloc(
       loginUseCase: sl<LoginUseCase>(),
       logoutUsecase: sl<LogoutUsecase>(),
+      registerUseCase: sl<RegisterUseCase>(),
     ),
   );
 
   // ================================= Start Home Feature =================================
   //* Data sources
   sl.registerLazySingleton<ProductsDatasource>(
-    () => ProductsDatasource(apiClient: sl<ApiClient>()),
+    () => ProductsDatasource(apiClient: sl<ApiConsumer>()),
   );
   sl.registerLazySingleton(() => ProfileImageDatasource(dioClient: sl<Dio>()));
 
   //* repositories
   sl.registerLazySingleton<ProductsRepository>(
-    () => ProductsRepository(productsDatasource: sl<ProductsDatasource>()),
+    () => ProductsRepositoryImp(productsDatasource: sl<ProductsDatasource>()),
   );
 
   //* UseCases
@@ -139,14 +162,20 @@ Future<void> initDI() async {
     ),
   );
   //* Blocs
-  sl.registerFactory<HomeBloc>(
-    () => HomeBloc(
-      getProductsUsecase: sl<GetCategoryUsecase>(),
+  sl.registerFactory<DashboardBloc>(
+    () => DashboardBloc(getDashboardUsecase: sl<GetDashboardUsecase>()),
+  );
+  sl.registerFactory<CategoryBloc>(
+    () => CategoryBloc(getProductsUsecase: sl<GetCategoryUsecase>()),
+  );
+  sl.registerFactory<ProductDetailsBloc>(
+    () => ProductDetailsBloc(
       getProductUsecase: sl<GetProductUsecase>(),
       getRelatedProductsUsecase: sl<GetRelatedProducts>(),
-      getDashboardUsecase: sl<GetDashboardUsecase>(),
-      uploadProfileImageUsecase: sl<UploadProfileImageUsecase>(),
     ),
+  );
+  sl.registerFactory<ProfileBloc>(
+    () => ProfileBloc(uploadProfileImageUsecase: sl<UploadProfileImageUsecase>()),
   );
 
   // ================================= End Home Feature =============================
@@ -162,7 +191,7 @@ Future<void> initDI() async {
 
   //* Repos
   sl.registerLazySingleton<CartRepository>(
-    () => CartRepository(localDataSource: sl<CartLocalDataSource>()),
+    () => CartRepoImp(localDataSource: sl<CartLocalDataSource>()),
   );
 
   //* Use cases
@@ -179,10 +208,10 @@ Future<void> initDI() async {
     () => UpdateProductQuantity(cartRepository: sl<CartRepository>()),
   );
   sl.registerLazySingleton<SetCartDiscount>(
-    () => SetCartDiscount(cartLocalDataSource: sl<CartLocalDataSource>()),
+    () => SetCartDiscount(cartRepository: sl<CartRepository>()),
   );
   sl.registerLazySingleton<GetCartDiscountState>(
-    () => GetCartDiscountState(cartLocalDataSource: sl<CartLocalDataSource>()),
+    () => GetCartDiscountState(cartRepository: sl<CartRepository>()),
   );
 
   // * Blocs
@@ -201,19 +230,19 @@ Future<void> initDI() async {
 
   // ================================= Start Wishlist Feature =================================
   //* Data sources
-  sl.registerLazySingleton<WishlistDatesource>(
-    () => WishlistDatesource(appDatabase: sl<AppDatabase>()),
+  sl.registerLazySingleton<WishlistDatasource>(
+    () => WishlistDatasource(appDatabase: sl<AppDatabase>()),
   );
 
   //* Repos
-  sl.registerLazySingleton<WishlistRepo>(
-    () => WishlistRepo(datasource: sl<WishlistDatesource>()),
+  sl.registerLazySingleton<WishlistRepository>(
+    () => WishlistRepoImp(datasource: sl<WishlistDatasource>()),
   );
 
   //* Use cases
-  sl.registerLazySingleton<GetWishlist>(() => GetWishlist(sl<WishlistRepo>()));
+  sl.registerLazySingleton<GetWishlist>(() => GetWishlist(sl<WishlistRepository>()));
   sl.registerLazySingleton<ToggleWishlist>(
-    () => ToggleWishlist(sl<WishlistRepo>()),
+    () => ToggleWishlist(sl<WishlistRepository>()),
   );
 
   // * Blocs
@@ -232,18 +261,18 @@ Future<void> initDI() async {
   );
 
   //* Repos
-  sl.registerLazySingleton<NotificationsRepo>(
-    () => NotificationsRepo(
+  sl.registerLazySingleton<NotificationsRepository>(
+    () => NotificationsRepoImp(
       notificationsDatasource: sl<NotificationsDatasource>(),
     ),
   );
 
   //* Use cases
   sl.registerLazySingleton<GetNotifications>(
-    () => GetNotifications(notificationsRepo: sl<NotificationsRepo>()),
+    () => GetNotifications(notificationsRepo: sl<NotificationsRepository>()),
   );
   sl.registerLazySingleton<InsertNotification>(
-    () => InsertNotification(notificationsRepo: sl<NotificationsRepo>()),
+    () => InsertNotification(notificationsRepo: sl<NotificationsRepository>()),
   );
 
   // * Blocs

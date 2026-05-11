@@ -2,13 +2,14 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:evo_project/core/extensions/extensions.dart';
 import 'package:evo_project/core/helpers/currency_symbols.dart';
 import 'package:evo_project/core/router/route_names.dart';
+import 'package:evo_project/core/services/snack_service.dart';
 import 'package:evo_project/core/shared/widgets/global_button.dart';
-import 'package:evo_project/core/shared/widgets/loading_indecator.dart';
+import 'package:evo_project/core/shared/widgets/loading_indicator.dart';
 import 'package:evo_project/core/theme/app_typography.dart';
-import 'package:evo_project/features/cart/Domain/entites/cart_item.dart';
-import 'package:evo_project/features/cart/Presentation/cartBloc/cart_bloc.dart';
-import 'package:evo_project/features/cart/Presentation/cartBloc/cart_event.dart';
-import 'package:evo_project/features/wishlist/Domain/Entites/wishlist_item.dart';
+import 'package:evo_project/features/cart/domain/entities/cart_item.dart';
+import 'package:evo_project/features/cart/presentation/cartBloc/cart_bloc.dart';
+import 'package:evo_project/features/cart/presentation/cartBloc/cart_event.dart';
+import 'package:evo_project/features/wishlist/domain/entities/wishlist_item.dart';
 import 'package:evo_project/features/wishlist/presentation/bloc/wishlist_bloc.dart';
 import 'package:evo_project/features/wishlist/presentation/bloc/wishlist_event.dart';
 import 'package:evo_project/features/wishlist/presentation/bloc/wishlist_state.dart';
@@ -84,9 +85,7 @@ class _WishlistPageState extends State<WishlistPage> {
         },
         listener: (BuildContext context, state) {
           if (state.getWishlistState == GetWishlistState.failure) {
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(SnackBar(content: Text(state.errorMessage!)));
+            SnackService.show(state.errorMessage!);
           }
         },
       ),

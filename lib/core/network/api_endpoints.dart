@@ -6,7 +6,7 @@ class ApiEndpoints {
   // Auth
   static const String login = '/ktpl/account/login?___store=en';
   static const String logout = '/ktpl/account/logout?___store=en';
-
+  static const String register = '/ktpl/account/register';
   // Products
   static const String products =
       '/ktpl/getCategoryProducts?___store=en&list_type=3&currency_code=SAR';

@@ -1,6 +1,7 @@
 import 'package:evo_project/core/extensions/extensions.dart';
 import 'package:evo_project/core/helpers/form_border.dart';
 import 'package:evo_project/core/helpers/validators.dart';
+import 'package:evo_project/core/theme/app_colors.dart';
 import 'package:evo_project/core/theme/app_typography.dart';
 import 'package:flutter/material.dart';
 
@@ -20,6 +21,8 @@ class GlobalTextField extends StatelessWidget {
   final AutovalidateMode validationMode;
   final int? minLines;
   final int? maxLines;
+  final VoidCallback? onTap;
+  final bool readOnly;
 
   const GlobalTextField({
     super.key,
@@ -36,6 +39,8 @@ class GlobalTextField extends StatelessWidget {
     this.hintText,
     this.minLines,
     this.maxLines,
+    this.onTap,
+    this.readOnly = false,
   });
 
   @override
@@ -52,13 +57,16 @@ class GlobalTextField extends StatelessWidget {
                         Validators.validateField(fieldType, controller.text))
               : null,
           keyboardType: textInputType,
-          style: TextStyle(fontSize: 18, color: Colors.black87),
+          style: context.textStyles.bodyLarge!.copyWith(
+            color: AppColors.textPrimary,
+            fontSize: 18,
+          ),
           decoration: InputDecoration(
             floatingLabelBehavior: FloatingLabelBehavior.always,
             label: Container(
               padding: const EdgeInsets.symmetric(horizontal: 10),
               margin: const EdgeInsets.only(left: 10),
-              decoration: BoxDecoration(color: Colors.white),
+              decoration: const BoxDecoration(color: AppColors.background),
               child: Text(
                 text,
                 style: context.textStyles.bodyMedium!.copyWith(
@@ -69,29 +77,31 @@ class GlobalTextField extends StatelessWidget {
             ),
             hintText: hintText,
             hintStyle: context.textStyles.bodyMedium,
-            enabledBorder: TopBottomInputBorder(
-              borderSide: BorderSide(color: Color(0xffDBE9F5)),
+            enabledBorder: const TopBottomInputBorder(
+              borderSide: BorderSide(color: AppColors.border),
             ),
 
             focusedBorder: TopBottomInputBorder(
               borderSide: BorderSide(color: context.colors.primary),
             ),
 
-            errorBorder: TopBottomInputBorder(
-              borderSide: BorderSide(color: Colors.red),
+            errorBorder: const TopBottomInputBorder(
+              borderSide: BorderSide(color: AppColors.error),
             ),
 
-            focusedErrorBorder: TopBottomInputBorder(
-              borderSide: BorderSide(color: Colors.red, width: 1.5),
+            focusedErrorBorder: const TopBottomInputBorder(
+              borderSide: BorderSide(color: AppColors.error, width: 1.5),
             ),
 
             suffixIcon: suffixIcon,
-            contentPadding: EdgeInsets.only(top: -9, bottom: 16),
+            contentPadding: const EdgeInsets.only(top: -9, bottom: 16),
           ),
           obscureText: obscureText,
           onChanged: onChanged,
           maxLines: maxLines ?? 1,
           minLines: minLines,
+          onTap: onTap,
+          readOnly: readOnly,
         ),
       ),
     );

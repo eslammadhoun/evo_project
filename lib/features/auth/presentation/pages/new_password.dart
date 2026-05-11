@@ -105,7 +105,7 @@ class _NewPasswordPageState extends State<NewPasswordPage> {
             text: 'SEND',
             onTap: () => _formKey.currentState!.validate()
                 ? context.goNamed(
-                    RouteNames.succesPage,
+                    RouteNames.successPage,
                     extra: {
                       'title': 'Your password has\nbeen reset!',
                       'subTitle':

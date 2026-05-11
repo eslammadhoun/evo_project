@@ -1,12 +1,11 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:dio/dio.dart';
-import 'package:evo_project/core/di/service_locator.dart';
-import 'package:evo_project/core/router/route_names.dart';
+import 'package:evo_project/core/services/auth_event_service.dart';
 import 'package:evo_project/core/services/app_preferences.dart';
 import 'package:evo_project/core/services/network_logger.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 
 class AppInterceptors extends Interceptor {
   final AppPreferences appPreferences;
@@ -47,24 +46,51 @@ class AppInterceptors extends Interceptor {
       await _logoutAndRedirect();
       return handler.next(response);
     }
+
+    // 🔥 NEW: Centeralized status parsing
+    if (response.data is Map<String, dynamic>) {
+      final data = response.data as Map<String, dynamic>;
+      if (data.containsKey('status')) {
+        final status = data['status'];
+        final int error = status['error'] ?? 0;
+        final String message = status['message'] ?? '';
+        final List<dynamic> errorMessages = status['error_messages'] ?? [];
+
+        if (error == 1) {
+          return handler.reject(
+            DioException(
+              requestOptions: response.requestOptions,
+              response: response,
+              type: DioExceptionType.badResponse,
+              message: errorMessages.isNotEmpty ? errorMessages.join(', ') : message,
+            ),
+          );
+        }
+      }
+    }
+
     dynamic logData = response.data;
 
     if (response.data is String) {
       try {
         final decodedResponse = json.decode(response.data);
-        final prettyJson = const JsonEncoder.withIndent(
-          '  ',
-        ).convert(decodedResponse);
-        debugPrint("Response Decoded:\n$prettyJson");
+        if (kDebugMode) {
+          final prettyJson = const JsonEncoder.withIndent(
+            '  ',
+          ).convert(decodedResponse);
+          debugPrint("Response Decoded:\n$prettyJson");
+        }
         logData = decodedResponse;
       } catch (e) {
-        debugPrint("Failed to decode response: ${response.data}");
+        if (kDebugMode) debugPrint("Failed to decode response: ${response.data}");
       }
     } else if (response.data is Map<String, dynamic>) {
-      final prettyJson = const JsonEncoder.withIndent(
-        '  ',
-      ).convert(response.data);
-      debugPrint("Response JSON:\n$prettyJson");
+      if (kDebugMode) {
+        final prettyJson = const JsonEncoder.withIndent(
+          '  ',
+        ).convert(response.data);
+        debugPrint("Response JSON:\n$prettyJson");
+      }
     } else {
       debugPrint("Response Data: ${response.data}");
     }
@@ -96,16 +122,8 @@ class AppInterceptors extends Interceptor {
   }
 
   Future<void> _logoutAndRedirect() async {
-    debugPrint("Session expired → logging out");
-
+    debugPrint("Session expired → emitting unauthenticated event");
     await appPreferences.logout();
-
-    // Navigate to signin, removing all previous routes
-    final context = sl<GlobalKey<NavigatorState>>().currentContext;
-    if (context != null && context.mounted) {
-      GoRouter.of(
-        context,
-      ).goNamed(RouteNames.signin, extra: {'has_back': false});
-    }
+    AuthEventService().emit(AuthEvent.unauthenticated);
   }
 }

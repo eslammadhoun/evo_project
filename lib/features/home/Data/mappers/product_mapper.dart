@@ -1,5 +1,5 @@
-import 'package:evo_project/features/home/Data/models/product_model.dart';
-import 'package:evo_project/features/home/Domain/entities/product.dart';
+import 'package:evo_project/features/home/data/models/product_model.dart';
+import 'package:evo_project/features/home/domain/entities/product.dart';
 
 extension ProductMapper on ProductModel {
   Product toEntity() {

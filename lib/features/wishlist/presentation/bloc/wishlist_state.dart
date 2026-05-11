@@ -1,5 +1,5 @@
 import 'package:equatable/equatable.dart';
-import 'package:evo_project/features/wishlist/Domain/Entites/wishlist_item.dart';
+import 'package:evo_project/features/wishlist/domain/entities/wishlist_item.dart';
 
 enum GetWishlistState { initial, loading, failure, success }
 

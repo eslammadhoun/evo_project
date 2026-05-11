@@ -1,7 +1,4 @@
-import 'dart:io';
 import 'package:dio/dio.dart';
-import 'package:dio/io.dart';
-import 'package:evo_project/core/di/service_locator.dart';
 import 'package:evo_project/core/env_config.dart';
 import 'package:evo_project/core/errors/failures.dart';
 import 'package:evo_project/core/network/app_interceptors.dart';
@@ -10,6 +7,7 @@ import 'package:evo_project/core/network/status_code.dart';
 import 'package:evo_project/core/network/status_model.dart';
 import 'package:flutter/foundation.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
+import 'package:native_dio_adapter/native_dio_adapter.dart';
 
 abstract class ApiConsumer {
   Future<dynamic> get(String path, {Map<String, dynamic>? queryParameters});
@@ -43,20 +41,14 @@ abstract class ApiConsumer {
 
 class ApiClient implements ApiConsumer {
   final Dio dioClient;
+  final AppInterceptors interceptors;
 
-  ApiClient({required this.dioClient}) {
-    (dioClient.httpClientAdapter as IOHttpClientAdapter).createHttpClient = () {
-      HttpClient httpClient = HttpClient();
-      httpClient.badCertificateCallback =
-          (X509Certificate cert, String host, int port) => true;
-      return httpClient;
-    };
-
+  ApiClient({required this.dioClient, required this.interceptors}) {
     dioClient.options
       ..baseUrl = EnvConfig.baseUrl
       ..responseType = ResponseType.json
       ..maxRedirects = 5
-      ..followRedirects = false
+      ..followRedirects = true
       ..validateStatus = (status) {
         return status! < StatusCode.internalServerError;
       }
@@ -64,7 +56,8 @@ class ApiClient implements ApiConsumer {
       ..receiveTimeout = const Duration(seconds: 15)
       ..sendTimeout = const Duration(seconds: 30);
 
-    dioClient.interceptors.add(sl<AppInterceptors>());
+    dioClient.httpClientAdapter = NativeAdapter();
+    dioClient.interceptors.add(interceptors);
 
     if (kDebugMode) {
       dioClient.interceptors.add(
@@ -82,16 +75,10 @@ class ApiClient implements ApiConsumer {
   }
 
   @override
-  Future<dynamic> get(
-    String path, {
-    Map<String, dynamic>? queryParameters,
-  }) async {
+  Future<dynamic> get(String path, {Map<String, dynamic>? queryParameters}) async {
     try {
-      final response = await dioClient.get(
-        path,
-        queryParameters: queryParameters,
-      );
-      return _handleResponseAsJson(response);
+      final response = await dioClient.get(path, queryParameters: queryParameters);
+      return _wrapResponse(response);
     } on DioException catch (error) {
       throw _handleDioError(error);
     }
@@ -110,44 +97,27 @@ class ApiClient implements ApiConsumer {
         queryParameters: queryParameters,
         data: formDataIsEnabled ? FormData.fromMap(body ?? {}) : body,
       );
-
-      return _handleResponseAsJson(response);
+      return _wrapResponse(response);
     } on DioException catch (error) {
       throw _handleDioError(error);
     }
   }
 
   @override
-  Future<dynamic> put(
-    String path, {
-    Map<String, dynamic>? body,
-    Map<String, dynamic>? queryParameters,
-  }) async {
+  Future<dynamic> put(String path, {Map<String, dynamic>? body, Map<String, dynamic>? queryParameters}) async {
     try {
-      final response = await dioClient.put(
-        path,
-        queryParameters: queryParameters,
-        data: body,
-      );
-      return _handleResponseAsJson(response);
+      final response = await dioClient.put(path, queryParameters: queryParameters, data: body);
+      return _wrapResponse(response);
     } on DioException catch (error) {
       throw _handleDioError(error);
     }
   }
 
   @override
-  Future<dynamic> patch(
-    String path, {
-    Map<String, dynamic>? body,
-    Map<String, dynamic>? queryParameters,
-  }) async {
+  Future<dynamic> patch(String path, {Map<String, dynamic>? body, Map<String, dynamic>? queryParameters}) async {
     try {
-      final response = await dioClient.patch(
-        path,
-        queryParameters: queryParameters,
-        data: body,
-      );
-      return _handleResponseAsJson(response);
+      final response = await dioClient.patch(path, queryParameters: queryParameters, data: body);
+      return _wrapResponse(response);
     } on DioException catch (error) {
       throw _handleDioError(error);
     }
@@ -166,132 +136,59 @@ class ApiClient implements ApiConsumer {
         queryParameters: queryParameters,
         data: formDataIsEnabled ? FormData.fromMap(body ?? {}) : body,
       );
-      return _handleResponseAsJson(response);
+      return _wrapResponse(response);
     } on DioException catch (error) {
       throw _handleDioError(error);
     }
   }
 
-  // ✅ UPDATED
-  dynamic _handleResponseAsJson(Response<dynamic> response) {
-    var res = ResponseWrapper<dynamic>();
+  ResponseWrapper _wrapResponse(Response response) {
+    final wrapper = ResponseWrapper();
+    wrapper.statusModel = StatusModel()
+      ..code = response.statusCode ?? 200
+      ..error = 0
+      ..message = 'Success';
 
-    try {
-      // 🔥 NEW: handle non-JSON (HTML, String, etc)
-      if (response.data is! Map<String, dynamic> && response.data is! List) {
-        res.statusModel = StatusModel()
-          ..code = response.statusCode ?? 500
-          ..message = "Invalid response format (not JSON)"
-          ..error = 1
-          ..errorMessages = [];
-
-        res.data = response.data;
-        return res;
+    if (response.data is Map<String, dynamic>) {
+      final dataMap = response.data as Map<String, dynamic>;
+      wrapper.data = dataMap['data'] ?? dataMap;
+      if (dataMap.containsKey('status')) {
+        final statusMap = dataMap['status'];
+        wrapper.statusModel.message = statusMap['message'] ?? 'Success';
+        wrapper.statusModel.code = statusMap['code'] ?? response.statusCode ?? 200;
       }
-
-      res.statusModel = StatusModel();
-      res.statusModel.code =
-          response.data?["status"]?["code"] ?? response.statusCode ?? 500;
-      res.statusModel.message = response.data?["status"]?["message"] ?? "";
-      res.statusModel.error = response.data?["status"]?["error"] ?? 1;
-
-      if (response.data?["status"]?["error_messages"] != null) {
-        res.statusModel.errorMessages = List<String>.from(
-          response.data["status"]["error_messages"],
-        );
-      } else {
-        res.statusModel.errorMessages = [];
-      }
-
-      if ((response.statusCode == 200 ||
-              response.statusCode == 201 ||
-              response.statusCode == 204) &&
-          response.data != null) {
-        if (response.data is List) {
-          res.data = response.data;
-        } else if (response.data is Map<String, dynamic>) {
-          res.data = response.data["data"] ?? response.data;
-        } else {
-          res.data = response.data;
-        }
-      } else {
-        res.data = response.data;
-      }
-
-      return res;
-    } catch (e) {
-      res.statusModel = StatusModel()
-        ..code = response.statusCode ?? 500
-        ..message = "Unknown error"
-        ..error = 1
-        ..errorMessages = [];
-
-      res.data = response.data;
-      return res;
+    } else {
+      wrapper.data = response.data;
     }
+    return wrapper;
   }
 
-  dynamic _handleDioError(DioException error) {
+  Failure _handleDioError(DioException error) {
     switch (error.type) {
       case DioExceptionType.connectionTimeout:
-        throw NetworkFailure("connection time out");
-
       case DioExceptionType.sendTimeout:
-        throw NetworkFailure("send time out");
-
       case DioExceptionType.receiveTimeout:
-        throw NetworkFailure("receive time out");
-
+        return NetworkFailure("Connection timed out. Please check your internet.");
+      
       case DioExceptionType.badResponse:
-        final data = error.response?.data;
+        final statusCode = error.response?.statusCode;
+        final message = error.message ?? "Server error";
 
-        switch (error.response?.statusCode) {
-          case StatusCode.badRequest:
-            final message = data["message"] ?? data["massage"];
-            if (message != null && message.toString().isNotEmpty) {
-              throw UserFailure(message);
-            }
-            throw ServerFailure("bad request");
-
-          case StatusCode.unauthorized:
-            throw AuthFailure("unauthorized");
-
-          case StatusCode.forbidden:
-            throw AuthFailure("forbidden");
-
-          case StatusCode.notFound:
-            throw ServerFailure("not found");
-
-          case StatusCode.confilct:
-            throw ServerFailure("conflict");
-
-          case StatusCode.internalServerError:
-            throw ServerFailure("Service Unavilabe, please try agnain later");
-
-          case 503:
-            throw ServerFailure("Service Unavailable Server Down");
-
-          default:
-            // handle HTML or non-JSON response
-            if (data is String) {
-              throw ServerFailure(
-                "Service Unavailable (Server Down) (${error.response?.statusCode})",
-              );
-            }
-            throw ServerFailure("Server error (${error.response?.statusCode})");
-        }
+        if (statusCode == StatusCode.unauthorized) return AuthFailure("Session expired. Please login again.");
+        if (statusCode == StatusCode.forbidden) return AuthFailure("Access denied.");
+        if (statusCode == StatusCode.internalServerError) return ServerFailure("Server is currently unavailable.");
+        
+        return ServerFailure(message);
 
       case DioExceptionType.cancel:
-        throw ServerFailure("cancel");
+        return ServerFailure("Request cancelled.");
 
       case DioExceptionType.unknown:
-        throw NetworkFailure("No internet Connection");
-
-      case DioExceptionType.badCertificate:
-        throw ServerFailure("bad certificate");
-
       case DioExceptionType.connectionError:
-        throw NetworkFailure("No internet Connection");
+        return NetworkFailure("No internet connection.");
+
+      default:
+        return ServerFailure("Something went wrong. Please try again.");
     }
   }
 }
