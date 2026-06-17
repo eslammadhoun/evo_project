@@ -159,7 +159,8 @@ Current offline behavior is partial:
 
 ## 🧪 Testing Status
 
-- Testing scaffolding exists, but automated coverage is currently minimag
+- Testing scaffolding exists, but automated coverage is currently minimal
+
 ---
 
 ## 📸 Screenshots
@@ -251,7 +252,7 @@ Current offline behavior is partial:
 
 ### Setup
 ```bash
-git clone <https://github.com/eslammadhoun/evo_project>
+git clone https://github.com/eslammadhoun/evo_project.git
 cd evo_project
 flutter pub get
 ```
@@ -285,41 +286,23 @@ flutter build ios --release
 
 ---
 
-## 🧱 Engineering Decisions and Trade-offs
+## 🧱 Engineering Highlights
 
-### What was done well
-- Feature-first modular architecture
-- Clear BLoC-driven state boundaries
-- Strong local persistence integration for commerce-critical local flows
-- Centralized DI and network layers
-- Reusable UI component system
+### Strengths
+- Feature-first modular architecture with clear BLoC-driven state boundaries
+- Strong local persistence for commerce-critical flows (cart, wishlist, notifications)
+- Centralized DI and network layers with reusable UI component system
+- Real-world Flutter competency: DI, routing, BLoC orchestration, local DB, networking, error modeling
 
----
-
-## 📈 Scalability Notes
-
-This architecture is ready to scale with:
-- additional features via module cloning pattern
-- stronger contract tests at repository/use-case levels
-- guarded route middleware and richer session handling
-- gradual replacement of service-locator lookups in UI with stricter injection boundaries
-
----
-
-## 🧭 Challenges Solved
-
+### Challenges Solved
 - Managing complex app state across multiple feature modules with independent BLoCs
-- Keeping cart/wishlist/notifications resilient through local database persistence
 - Handling session expiry globally through interceptor + auth event stream
 - Building reusable widgets and animation primitives without over-coupling feature modules
 
----
-
-## 💼 Why This Project Is Technically Strong
-
-- It demonstrates practical, production-relevant architecture decisions
-- It balances feature delivery with long-term maintainability patterns
-- It includes security-aware and persistence-aware engineering choices
-- It shows real-world Flutter competency: DI, routing, BLoC orchestration, local DB, networking, error modeling, and reusable UI systems
+### Known Trade-offs & Limitations
+- Some layer boundary leaks (domain/presentation touching data-layer types)
+- Partial offline support — no full offline-first sync queue yet
+- API response envelope parsing can be hardened for consistency
+- Secrets handling strategy needs production hardening (`.env` currently bundled as asset)
 
 ---

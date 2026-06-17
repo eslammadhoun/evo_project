@@ -5,7 +5,6 @@ import 'package:evo_project/core/services/auth_event_service.dart';
 import 'package:evo_project/core/services/app_preferences.dart';
 import 'package:evo_project/core/services/network_logger.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
 
 class AppInterceptors extends Interceptor {
   final AppPreferences appPreferences;
@@ -62,7 +61,9 @@ class AppInterceptors extends Interceptor {
               requestOptions: response.requestOptions,
               response: response,
               type: DioExceptionType.badResponse,
-              message: errorMessages.isNotEmpty ? errorMessages.join(', ') : message,
+              message: errorMessages.isNotEmpty
+                  ? errorMessages.join(', ')
+                  : message,
             ),
           );
         }
@@ -82,7 +83,8 @@ class AppInterceptors extends Interceptor {
         }
         logData = decodedResponse;
       } catch (e) {
-        if (kDebugMode) debugPrint("Failed to decode response: ${response.data}");
+        if (kDebugMode)
+          debugPrint("Failed to decode response: ${response.data}");
       }
     } else if (response.data is Map<String, dynamic>) {
       if (kDebugMode) {
