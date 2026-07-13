@@ -7,9 +7,15 @@
             mcstaging2.femi9.com
         </domain>
 
-        <pin-set expiration="2027-01-01">
+        <!-- Pinned to the issuing CA chain (Let's Encrypt intermediate + ISRG root), not the
+             leaf cert, so this survives every 90-day leaf renewal. Only needs updating if
+             Let's Encrypt changes its intermediate/root hierarchy for this domain. -->
+        <pin-set expiration="2028-01-01">
             <pin digest="SHA-256">
-                fW3OIx+0+oEdFeW6wIElLqT6lCY6eaaixj4TOJ+K2JI=
+                LoMHBotttiDko50Gi13uXW71eIy7LAttI+rYT8wXF4w=
+            </pin>
+            <pin digest="SHA-256">
+                fk6IOKit1ild5647BH06ujSIq5XbCgqlbYl6ANhhi88=
             </pin>
         </pin-set>
 

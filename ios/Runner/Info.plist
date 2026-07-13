@@ -112,11 +112,18 @@
 				<dict>
 					<key>NSIncludesSubdomains</key>
 					<true />
-					<key>NSPinnedLeafIdentities</key>
+					<!-- Pinned to the issuing CA chain (Let's Encrypt intermediate + ISRG root), not the
+					     leaf cert, so this survives every 90-day leaf renewal. Only needs updating if
+					     Let's Encrypt changes its intermediate/root hierarchy for this domain. -->
+					<key>NSPinnedCAIdentities</key>
 					<array>
 						<dict>
 							<key>SPKI-SHA256-BASE64</key>
-							<string>fW3OIx+0+oEdFeW6wIElLqT6lCY6eaaixj4TOJ+K2JI=</string>
+							<string>LoMHBotttiDko50Gi13uXW71eIy7LAttI+rYT8wXF4w=</string>
+						</dict>
+						<dict>
+							<key>SPKI-SHA256-BASE64</key>
+							<string>fk6IOKit1ild5647BH06ujSIq5XbCgqlbYl6ANhhi88=</string>
 						</dict>
 					</array>
 				</dict>

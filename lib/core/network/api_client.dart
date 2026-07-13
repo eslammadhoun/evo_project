@@ -75,9 +75,15 @@ class ApiClient implements ApiConsumer {
   }
 
   @override
-  Future<dynamic> get(String path, {Map<String, dynamic>? queryParameters}) async {
+  Future<dynamic> get(
+    String path, {
+    Map<String, dynamic>? queryParameters,
+  }) async {
     try {
-      final response = await dioClient.get(path, queryParameters: queryParameters);
+      final response = await dioClient.get(
+        path,
+        queryParameters: queryParameters,
+      );
       return _wrapResponse(response);
     } on DioException catch (error) {
       throw _handleDioError(error);
@@ -104,9 +110,17 @@ class ApiClient implements ApiConsumer {
   }
 
   @override
-  Future<dynamic> put(String path, {Map<String, dynamic>? body, Map<String, dynamic>? queryParameters}) async {
+  Future<dynamic> put(
+    String path, {
+    Map<String, dynamic>? body,
+    Map<String, dynamic>? queryParameters,
+  }) async {
     try {
-      final response = await dioClient.put(path, queryParameters: queryParameters, data: body);
+      final response = await dioClient.put(
+        path,
+        queryParameters: queryParameters,
+        data: body,
+      );
       return _wrapResponse(response);
     } on DioException catch (error) {
       throw _handleDioError(error);
@@ -114,9 +128,17 @@ class ApiClient implements ApiConsumer {
   }
 
   @override
-  Future<dynamic> patch(String path, {Map<String, dynamic>? body, Map<String, dynamic>? queryParameters}) async {
+  Future<dynamic> patch(
+    String path, {
+    Map<String, dynamic>? body,
+    Map<String, dynamic>? queryParameters,
+  }) async {
     try {
-      final response = await dioClient.patch(path, queryParameters: queryParameters, data: body);
+      final response = await dioClient.patch(
+        path,
+        queryParameters: queryParameters,
+        data: body,
+      );
       return _wrapResponse(response);
     } on DioException catch (error) {
       throw _handleDioError(error);
@@ -155,7 +177,8 @@ class ApiClient implements ApiConsumer {
       if (dataMap.containsKey('status')) {
         final statusMap = dataMap['status'];
         wrapper.statusModel.message = statusMap['message'] ?? 'Success';
-        wrapper.statusModel.code = statusMap['code'] ?? response.statusCode ?? 200;
+        wrapper.statusModel.code =
+            statusMap['code'] ?? response.statusCode ?? 200;
       }
     } else {
       wrapper.data = response.data;
@@ -168,22 +191,29 @@ class ApiClient implements ApiConsumer {
       case DioExceptionType.connectionTimeout:
       case DioExceptionType.sendTimeout:
       case DioExceptionType.receiveTimeout:
-        return NetworkFailure("Connection timed out. Please check your internet.");
-      
+        return NetworkFailure(
+          "Connection timed out. Please check your internet.",
+        );
+
       case DioExceptionType.badResponse:
         final statusCode = error.response?.statusCode;
         final message = error.message ?? "Server error";
 
-        if (statusCode == StatusCode.unauthorized) return AuthFailure("Session expired. Please login again.");
-        if (statusCode == StatusCode.forbidden) return AuthFailure("Access denied.");
-        if (statusCode == StatusCode.internalServerError) return ServerFailure("Server is currently unavailable.");
-        
+        if (statusCode == StatusCode.unauthorized)
+          return AuthFailure("Session expired. Please login again.");
+        if (statusCode == StatusCode.forbidden)
+          return AuthFailure("Access denied.");
+        if (statusCode == StatusCode.internalServerError)
+          return ServerFailure("Server is currently unavailable.");
+
         return ServerFailure(message);
 
       case DioExceptionType.cancel:
         return ServerFailure("Request cancelled.");
 
       case DioExceptionType.unknown:
+        return ServerFailure("Something went wrong. Please try again.");
+
       case DioExceptionType.connectionError:
         return NetworkFailure("No internet connection.");
 
